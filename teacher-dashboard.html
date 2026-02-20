@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Teacher Dashboard - STEMify</title>
+  <meta name="description" content="Teacher dashboard for STEMify: manage months, add sessions, quizzes, PDFs, and assessments.">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="assets/css/main.css" rel="stylesheet">
+</head>
+
+<body class="dashboard-page">
+
+  <div class="dashboard-root">
+    <!-- Sidebar (Teacher) -->
+    <aside class="dashboard-sidebar">
+      <div class="dashboard-brand">
+        <a href="index.html" class="d-flex align-items-center gap-2 text-decoration-none">
+          <span class="dashboard-brand-logo">S</span>
+          <span class="dashboard-brand-text">STEMify</span>
+        </a>
+      </div>
+
+      <div class="dashboard-user-card">
+        <div class="dashboard-avatar" id="sidebarAvatar">
+          <span class="dashboard-avatar-initials" id="sidebarAvatarInitials">T</span>
+          <img class="dashboard-avatar-img" id="sidebarAvatarImg" alt="Profile photo">
+        </div>
+        <div class="dashboard-user-info">
+          <div class="dashboard-user-name" id="sidebarUserName">Teacher</div>
+          <div class="dashboard-user-meta" id="sidebarUserSchool">STEMify Teacher</div>
+        </div>
+      </div>
+
+      <nav class="dashboard-nav" aria-label="Teacher dashboard navigation">
+        <button class="dashboard-nav-item" data-section="profile">
+          <i class="bi bi-person-circle"></i>
+          <span>Profile</span>
+        </button>
+        <button class="dashboard-nav-item active" data-section="add-month">
+          <i class="bi bi-calendar-plus"></i>
+          <span>Add Month</span>
+        </button>
+        <button class="dashboard-nav-item" data-section="students">
+          <i class="bi bi-people"></i>
+          <span>Students</span>
+        </button>
+      </nav>
+
+      <div class="mt-auto pt-3 border-top dashboard-sidebar-footer">
+        <button id="dashboardLogout" class="dashboard-logout-btn">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Log out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="dashboard-main">
+      <header class="dashboard-main-header">
+        <div>
+          <h1 class="dashboard-main-title" id="dashboardWelcomeTitle">Welcome back, Teacher</h1>
+          <p class="dashboard-main-subtitle">Manage your months and add content for your students.</p>
+        </div>
+        <div class="dashboard-main-meta">
+          <button type="button" class="dashboard-theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+            <i class="bi bi-moon-stars" id="themeToggleIcon"></i>
+          </button>
+          <span class="badge rounded-pill bg-success-subtle text-success-emphasis">
+            <i class="bi bi-person-badge me-1"></i> Teacher dashboard
+          </span>
+        </div>
+      </header>
+
+      <!-- Add Month section -->
+      <section id="section-add-month" class="dashboard-section active">
+        <div class="dashboard-card">
+          <div class="dashboard-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h2 class="dashboard-card-title mb-0">Months</h2>
+              <p class="dashboard-card-subtitle mb-0">Add months and organize content (Sessions, Quizzes, PDFs, Assessments) for each.</p>
+            </div>
+            <button type="button" class="btn btn-success rounded-pill" id="addMonthBtn">
+              <i class="bi bi-plus-lg me-1"></i> Add Month
+            </button>
+          </div>
+
+          <!-- Add Month form (hidden by default) -->
+          <div id="addMonthFormContainer" class="add-month-form-wrap mt-4" style="display: none;">
+            <form id="addMonthForm" class="add-month-form">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label for="monthNumber" class="form-label">Month Number</label>
+                  <input type="number" class="form-control" id="monthNumber" min="1" placeholder="e.g. 1, 2, 3..." required>
+                </div>
+                <div class="col-md-6">
+                  <label for="monthPhoto" class="form-label">Upload Photo</label>
+                  <input type="file" class="form-control" id="monthPhoto" accept="image/*">
+                </div>
+                <div class="col-md-12 d-flex gap-2">
+                  <button type="submit" class="btn btn-success rounded-pill">Save Month</button>
+                  <button type="button" class="btn btn-outline-secondary rounded-pill" id="cancelAddMonthBtn">Cancel</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Month cards grid (2 per row) -->
+          <div id="monthCardsContainer" class="month-cards-grid row g-4 mt-3">
+            <!-- Month cards rendered here -->
+          </div>
+
+          <div id="monthCardsEmpty" class="dashboard-empty-state mt-4" style="display: none;">
+            <i class="bi bi-calendar3 dashboard-empty-icon"></i>
+            <p class="dashboard-empty-title">No months yet</p>
+            <p class="dashboard-empty-text">Click "Add Month" to create your first month and start adding content.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Students -->
+      <section id="section-students" class="dashboard-section">
+        <div class="dashboard-card">
+          <div class="dashboard-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <h2 class="dashboard-card-title mb-0">Students</h2>
+              <p class="dashboard-card-subtitle mb-0">All students subscribed with you and the months they have access to.</p>
+            </div>
+            <button type="button" class="btn btn-outline-success btn-sm rounded-pill" id="refreshStudentsBtn" aria-label="Refresh list">
+              <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle dashboard-students-table" id="studentsTable" style="display: none;">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">School</th>
+                  <th scope="col">Number</th>
+                  <th scope="col">Parent name</th>
+                  <th scope="col">Parent number</th>
+                  <th scope="col">Subscribed months</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTableBody">
+                <!-- Filled by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div id="studentsTableEmpty" class="dashboard-empty-state py-4" style="display: none;">
+            <i class="bi bi-people dashboard-empty-icon"></i>
+            <p class="dashboard-empty-title">No students yet</p>
+            <p class="dashboard-empty-text">When you add a Student ID to a month (in Edit Month), they will appear here with their subscribed months.</p>
+          </div>
+          <div id="studentsTableLoading" class="text-center py-4 text-muted" style="display: none;">
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Loading students…
+          </div>
+        </div>
+      </section>
+
+      <!-- Profile -->
+      <section id="section-profile" class="dashboard-section">
+        <div class="dashboard-card">
+          <div class="dashboard-card-header d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="dashboard-card-title mb-0">Profile</h2>
+              <p class="dashboard-card-subtitle mb-0">Basic information about your STEMify teacher account.</p>
+            </div>
+          </div>
+
+          <div class="dashboard-profile-header row g-3 align-items-center mb-2">
+            <div class="col-sm-auto">
+              <div class="profile-avatar-large" id="profileAvatar">
+                <span class="profile-avatar-initials" id="profileAvatarInitials">T</span>
+                <img class="profile-avatar-img" id="profileAvatarImg" alt="Profile photo">
+              </div>
+            </div>
+            <div class="col-sm">
+              <p class="text-muted small mb-1">Profile photo</p>
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <button type="button" class="btn btn-sm btn-outline-success rounded-pill" id="profilePhotoButton">
+                  <i class="bi bi-upload me-1"></i> Upload photo
+                </button>
+                <span class="text-muted small">Stored locally on this device only.</span>
+              </div>
+              <input type="file" class="d-none" id="profilePhotoInput" accept="image/*">
+            </div>
+          </div>
+
+          <div class="row g-4 mt-1">
+            <div class="col-md-6">
+              <dl class="dashboard-profile-list">
+                <div>
+                  <dt>Full name</dt>
+                  <dd id="profileName">—</dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd id="profileEmail">—</dd>
+                </div>
+                <div>
+                  <dt>School / Institution</dt>
+                  <dd id="profileSchool">—</dd>
+                </div>
+              </dl>
+            </div>
+            <div class="col-md-6">
+              <dl class="dashboard-profile-list">
+                <div>
+                  <dt>Role</dt>
+                  <dd>Teacher</dd>
+                </div>
+                <div>
+                  <dt>Account status</dt>
+                  <dd><span class="badge bg-success-subtle text-success-emphasis">Active</span></dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Edit Month Modal: content types (Sessions, Quizzes, PDFs, Assessments) -->
+  <div class="modal fade" id="editMonthModal" tabindex="-1" aria-labelledby="editMonthModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content dashboard-card border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h3 class="modal-title dashboard-card-title" id="editMonthModalLabel">Add content to Month <span id="editMonthNumberDisplay">1</span></h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <p class="dashboard-card-subtitle mb-3">Select the type of content you want to add to this month.</p>
+          <div class="edit-month-content-types">
+            <button type="button" class="edit-content-type-btn" data-type="sessions">
+              <i class="bi bi-camera-video"></i>
+              <span>Sessions</span>
+            </button>
+            <button type="button" class="edit-content-type-btn" data-type="quizzes">
+              <i class="bi bi-question-circle"></i>
+              <span>Quizzes</span>
+            </button>
+            <button type="button" class="edit-content-type-btn" data-type="pdfs">
+              <i class="bi bi-file-earmark-pdf"></i>
+              <span>PDFs</span>
+            </button>
+            <button type="button" class="edit-content-type-btn" data-type="assessments">
+              <i class="bi bi-clipboard-check"></i>
+              <span>Assessments</span>
+            </button>
+          </div>
+          <div id="editMonthContentList" class="mt-4">
+            <h4 class="h6 mb-2">Content in this month</h4>
+            <ul id="editMonthContentItems" class="list-group list-group-flush">
+              <!-- Filled by JS -->
+            </ul>
+          </div>
+          <div class="mt-4 pt-3 border-top">
+            <h4 class="h6 mb-2">Students with access</h4>
+            <p class="small text-muted mb-2">Add the Student ID (e.g. STEM-2025-123456) when a student pays for this month. They will see this month in their dashboard Courses.</p>
+            <div class="d-flex gap-2 mb-2">
+              <input type="text" class="form-control form-control-sm" id="addStudentIdInput" placeholder="Student ID (e.g. STEM-2025-123456)">
+              <button type="button" class="btn btn-sm btn-success rounded-pill" id="addStudentIdBtn">Add</button>
+            </div>
+            <ul id="editMonthStudentIds" class="list-group list-group-flush small">
+              <!-- Filled by JS -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add content sub-modal: upload for Sessions/PDFs/Assessments, link for Quizzes -->
+  <div class="modal fade" id="addContentModal" tabindex="-1" aria-labelledby="addContentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content dashboard-card border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h3 class="modal-title dashboard-card-title" id="addContentModalLabel">Add <span id="addContentTypeLabel">Session</span></h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body pt-2">
+          <form id="addContentForm">
+            <input type="hidden" id="addContentTypeInput" name="type" value="sessions">
+            <div class="mb-3">
+              <label for="addContentTitle" class="form-label">Name (optional)</label>
+              <input type="text" class="form-control" id="addContentTitle" placeholder="e.g. Intro to Algebra (or leave blank for auto name)">
+            </div>
+            <div class="mb-3 d-none" id="addContentUrlWrap">
+              <label for="addContentUrl" class="form-label">Quiz link (URL)</label>
+              <input type="url" class="form-control" id="addContentUrl" placeholder="https://...">
+            </div>
+            <div class="mb-3 d-none" id="addContentFileWrap">
+              <label for="addContentFile" class="form-label">Upload file</label>
+              <input type="file" class="form-control" id="addContentFile" accept="video/*,.pdf,image/*">
+            </div>
+            <div id="addContentUploadProgress" class="mb-3 d-none">
+              <div class="d-flex align-items-center gap-2">
+                <span class="spinner-border spinner-border-sm text-success" role="status" aria-hidden="true"></span>
+                <span class="small text-muted">Uploading…</span>
+              </div>
+            </div>
+            <p class="small text-muted mb-2 d-none" id="addContentFileHint">File will be uploaded and saved as: <strong>your_name-teacher_name-month_X</strong> (or session(N)month(N) if no name)</p>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-success rounded-pill" id="addContentSubmitBtn">Add</button>
+              <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+            </div>
+            <div id="addContentError" class="text-danger small mt-2" style="display:none;"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendor JS Files -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Teacher Dashboard JS -->
+  <script>
+    (function () {
+      "use strict";
+
+      // --- Supabase: teacher content & subscriptions (months, teacher_month_students, teacher_month_content) ---
+      const SUPABASE_URL = 'https://suzfqdinxinywbnmdxfx.supabase.co';
+      const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1emZxZGlueGlueXdibm1keGZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NDI2NDMsImV4cCI6MjA4NjMxODY0M30.96g5KWq26xztjUfTfBi5Z4xBo0r4LdTp3ZuPofqcTWU';
+      const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+      // --- Supabase Students DB: student profiles (name, email, school, etc.) ---
+      const SUPABASE_STUDENTS_URL = 'https://twygdynogtjqulkobhsv.supabase.co';
+      const SUPABASE_STUDENTS_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR3eWdkeW5vZ3RqcXVsa29iaHN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA0NTA5NDksImV4cCI6MjA4NjAyNjk0OX0.9WFWafcYC7fUC8wCgnHLLzgKzdvtAiPBjBNLMjCxRf8';
+      const supabaseStudents = window.supabase ? window.supabase.createClient(SUPABASE_STUDENTS_URL, SUPABASE_STUDENTS_ANON_KEY) : null;
+
+      const userStr = localStorage.getItem('stemify_teacher_user') || localStorage.getItem('stemify_user');
+      if (!userStr) {
+        window.location.href = 'signin.html';
+        return;
+      }
+
+      let user;
+      try {
+        user = JSON.parse(userStr);
+      } catch (e) {
+        console.error('Failed to parse user from localStorage', e);
+        window.location.href = 'signin.html';
+        return;
+      }
+
+      if (supabase && localStorage.getItem('stemify_token')) {
+        supabase.auth.setSession({
+          access_token: localStorage.getItem('stemify_token'),
+          refresh_token: localStorage.getItem('stemify_refresh_token') || ''
+        }).catch(function() {});
+      }
+
+      const fullName = (user.name || 'Teacher').trim();
+      const email = user.email || '';
+      const school = user.school || 'STEMify Teacher';
+
+      const sidebarUserName = document.getElementById('sidebarUserName');
+      const sidebarUserSchool = document.getElementById('sidebarUserSchool');
+      const sidebarAvatar = document.getElementById('sidebarAvatar');
+      const sidebarAvatarInitials = document.getElementById('sidebarAvatarInitials');
+      const sidebarAvatarImg = document.getElementById('sidebarAvatarImg');
+      const dashboardWelcomeTitle = document.getElementById('dashboardWelcomeTitle');
+      const profileName = document.getElementById('profileName');
+      const profileEmail = document.getElementById('profileEmail');
+      const profileSchool = document.getElementById('profileSchool');
+      const profileAvatar = document.getElementById('profileAvatar');
+      const profileAvatarInitials = document.getElementById('profileAvatarInitials');
+      const profileAvatarImg = document.getElementById('profileAvatarImg');
+      const profilePhotoButton = document.getElementById('profilePhotoButton');
+      const profilePhotoInput = document.getElementById('profilePhotoInput');
+
+      const AVATAR_KEY = `stemify_teacher_avatar_${user.id || 'guest'}`;
+      const THEME_KEY = 'stemify_dashboard_theme';
+      const MONTHS_KEY = 'stemify_teacher_months_' + (user.id || 'guest');
+      const themeToggle = document.getElementById('themeToggle');
+      const themeToggleIcon = document.getElementById('themeToggleIcon');
+
+      if (sidebarUserName) sidebarUserName.textContent = fullName;
+      if (sidebarUserSchool) sidebarUserSchool.textContent = school;
+      if (dashboardWelcomeTitle) dashboardWelcomeTitle.textContent = `Welcome back, ${fullName}`;
+      if (profileName) profileName.textContent = fullName;
+      if (profileEmail) profileEmail.textContent = email || '—';
+      if (profileSchool) profileSchool.textContent = school || '—';
+
+      function applyTheme(theme) {
+        const isDark = theme === 'dark';
+        document.body.classList.toggle('dashboard-dark', isDark);
+        if (themeToggleIcon) {
+          themeToggleIcon.classList.toggle('bi-moon-stars', !isDark);
+          themeToggleIcon.classList.toggle('bi-sun', isDark);
+        }
+      }
+      let savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+      if (savedTheme === 'dark' || savedTheme === 'light') applyTheme(savedTheme);
+      themeToggle && themeToggle.addEventListener('click', () => {
+        const next = document.body.classList.contains('dashboard-dark') ? 'light' : 'dark';
+        applyTheme(next);
+        localStorage.setItem(THEME_KEY, next);
+      });
+
+      function applyAvatarInitials() {
+        const initials = (fullName || 'T').trim().split(' ').map(p => p[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'T';
+        if (sidebarAvatarInitials) sidebarAvatarInitials.textContent = initials;
+        if (profileAvatarInitials) profileAvatarInitials.textContent = initials;
+        [sidebarAvatar, profileAvatar].forEach(el => el && el.classList.remove('has-image'));
+      }
+      function setAvatarFromDataUrl(dataUrl) {
+        if (!dataUrl) { applyAvatarInitials(); return; }
+        if (sidebarAvatarImg) sidebarAvatarImg.src = dataUrl;
+        if (profileAvatarImg) profileAvatarImg.src = dataUrl;
+        [sidebarAvatar, profileAvatar].forEach(el => el && el.classList.add('has-image'));
+      }
+      try {
+        const stored = localStorage.getItem(AVATAR_KEY);
+        if (stored) setAvatarFromDataUrl(stored);
+        else applyAvatarInitials();
+      } catch (e) { applyAvatarInitials(); }
+      if (profilePhotoButton && profilePhotoInput) {
+        profilePhotoButton.addEventListener('click', () => profilePhotoInput.click());
+        profilePhotoInput.addEventListener('change', (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file || file.size > 3 * 1024 * 1024) { if (file) alert('Please choose an image smaller than 3 MB.'); return; }
+          const reader = new FileReader();
+          reader.onload = () => { const r = reader.result; if (typeof r === 'string') { try { localStorage.setItem(AVATAR_KEY, r); } catch (err) {} setAvatarFromDataUrl(r); } };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // --- Months data ---
+      let months = [];
+      function loadMonths() {
+        try {
+          const raw = localStorage.getItem(MONTHS_KEY);
+          if (!raw) return [];
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) return parsed;
+          if (parsed && Array.isArray(parsed.months)) return parsed.months;
+          return [];
+        } catch (e) { return []; }
+      }
+      function saveMonths() {
+        try { localStorage.setItem(MONTHS_KEY, JSON.stringify(months)); } catch (e) {}
+      }
+
+      function ensureMonthContent(month) {
+        if (!month.content) month.content = { sessions: [], quizzes: [], pdfs: [], assessments: [] };
+        return month;
+      }
+
+      const monthCardsContainer = document.getElementById('monthCardsContainer');
+      const monthCardsEmpty = document.getElementById('monthCardsEmpty');
+      const addMonthBtn = document.getElementById('addMonthBtn');
+      const addMonthFormContainer = document.getElementById('addMonthFormContainer');
+      const addMonthForm = document.getElementById('addMonthForm');
+      const cancelAddMonthBtn = document.getElementById('cancelAddMonthBtn');
+      const monthNumberInput = document.getElementById('monthNumber');
+      const monthPhotoInput = document.getElementById('monthPhoto');
+
+      function renderMonthCards() {
+        if (!monthCardsContainer) return;
+        monthCardsContainer.innerHTML = '';
+        const sorted = [...months].sort((a, b) => (a.number || 0) - (b.number || 0));
+        if (sorted.length === 0) {
+          if (monthCardsEmpty) monthCardsEmpty.style.display = 'block';
+          return;
+        }
+        if (monthCardsEmpty) monthCardsEmpty.style.display = 'none';
+        sorted.forEach(month => {
+          const col = document.createElement('div');
+          col.className = 'col-md-6';
+          col.innerHTML = `
+            <div class="month-card dashboard-card h-100" data-month-id="${month.id}">
+              <div class="month-card-image-wrap">
+                ${month.photoDataUrl ? `<img src="${month.photoDataUrl}" alt="Month ${month.number}" class="month-card-image">` : '<div class="month-card-image month-card-image-placeholder"><i class="bi bi-calendar3"></i></div>'}
+              </div>
+              <div class="month-card-body">
+                <h3 class="month-card-title">Month ${month.number}</h3>
+                <div class="month-card-actions d-flex gap-2 flex-wrap">
+                  <button type="button" class="btn btn-sm btn-outline-success rounded-pill month-card-edit-btn" data-month-id="${month.id}" aria-label="Edit month">
+                    <i class="bi bi-pencil me-1"></i> Edit
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger rounded-pill month-card-delete-btn" data-month-id="${month.id}" aria-label="Delete month">
+                    <i class="bi bi-trash me-1"></i> Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+          monthCardsContainer.appendChild(col);
+        });
+      }
+
+      addMonthBtn && addMonthBtn.addEventListener('click', () => {
+        if (addMonthFormContainer) addMonthFormContainer.style.display = 'block';
+        if (monthNumberInput) { monthNumberInput.value = ''; monthNumberInput.focus(); }
+        if (monthPhotoInput) monthPhotoInput.value = '';
+      });
+      cancelAddMonthBtn && cancelAddMonthBtn.addEventListener('click', () => {
+        if (addMonthFormContainer) addMonthFormContainer.style.display = 'none';
+      });
+
+      addMonthForm && addMonthForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const num = parseInt(monthNumberInput.value, 10);
+        if (!num || num < 1) return;
+        const file = monthPhotoInput.files && monthPhotoInput.files[0];
+        if (file && file.size <= 5 * 1024 * 1024) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            addMonth(num, reader.result);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          addMonth(num, '');
+        }
+      });
+
+      function addMonth(number, photoDataUrl) {
+        const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'm' + Date.now();
+        const month = ensureMonthContent({ id, number, photoDataUrl: photoDataUrl || '', content: { sessions: [], quizzes: [], pdfs: [], assessments: [] } });
+        months.push(month);
+        saveMonths();
+        renderMonthCards();
+        if (addMonthFormContainer) addMonthFormContainer.style.display = 'none';
+        addMonthForm && addMonthForm.reset();
+      }
+
+      async function deleteMonth(monthId) {
+        const month = months.find(function(m) { return m.id === monthId; });
+        if (!month) return;
+        var msg = 'Delete Month ' + month.number + ' and all its content (sessions, quizzes, PDFs, assessments, student access)? This cannot be undone.';
+        if (!confirm(msg)) return;
+        var monthNum = month.number;
+        months = months.filter(function(m) { return m.id !== monthId; });
+        saveMonths();
+        renderMonthCards();
+        if (addMonthFormContainer) addMonthFormContainer.style.display = 'none';
+        if (supabase && teacherId) {
+          try {
+            var contentRow = await getContentRow(monthNum);
+            if (contentRow.data && contentRow.data.id) {
+              await supabase.from('teacher_month_content').delete().eq('id', contentRow.data.id);
+            }
+            await supabase.from('teacher_month_students').delete().eq('teacher_id', teacherId).eq('month_number', monthNum);
+            var prefix = teacherId + '/month_' + monthNum + '/';
+            var folders = ['sessions', 'pdfs', 'assessments'];
+            for (var f = 0; f < folders.length; f++) {
+              var folderPath = prefix + folders[f];
+              var listRes = await supabase.storage.from(BUCKET).list(folderPath, { limit: 500 });
+              if (listRes.data && listRes.data.length > 0) {
+                var paths = listRes.data.map(function(item) { return folderPath + '/' + item.name; });
+                await supabase.storage.from(BUCKET).remove(paths);
+              }
+            }
+          } catch (e) {
+            console.error('Error cleaning up month in Supabase:', e);
+          }
+        }
+      }
+
+      function initMonthsAndRender() {
+        months = loadMonths().map(ensureMonthContent);
+        renderMonthCards();
+        if (supabase && user && user.id) {
+          supabase.from('teacher_month_content').select('month_number').eq('teacher_id', user.id).then(function(res) {
+            if (res.data && res.data.length > 0) {
+              const fromSupabase = res.data.map(function(r) { return r.month_number; }).filter(Boolean);
+              const existingNumbers = months.map(function(m) { return m.number; });
+              var changed = false;
+              fromSupabase.forEach(function(num) {
+                if (existingNumbers.indexOf(num) === -1) {
+                  const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'm' + Date.now() + '-' + num;
+                  months.push(ensureMonthContent({ id: id, number: num, photoDataUrl: '', content: { sessions: [], quizzes: [], pdfs: [], assessments: [] } }));
+                  changed = true;
+                }
+              });
+              if (changed) { saveMonths(); renderMonthCards(); }
+            }
+          }).catch(function() {});
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMonthsAndRender);
+      } else {
+        initMonthsAndRender();
+      }
+      window.addEventListener('pageshow', function(ev) {
+        if (ev.persisted) {
+          months = loadMonths().map(ensureMonthContent);
+          renderMonthCards();
+        }
+      });
+
+      // Edit Month modal
+      const editMonthModal = document.getElementById('editMonthModal');
+      const editMonthNumberDisplay = document.getElementById('editMonthNumberDisplay');
+      const editMonthContentItems = document.getElementById('editMonthContentItems');
+      let currentEditMonthId = null;
+      const contentTypeLabels = { sessions: 'Sessions', quizzes: 'Quizzes', pdfs: 'PDFs', assessments: 'Assessments' };
+
+      const editMonthStudentIdsEl = document.getElementById('editMonthStudentIds');
+      const addStudentIdInput = document.getElementById('addStudentIdInput');
+      const addStudentIdBtn = document.getElementById('addStudentIdBtn');
+      let monthStudentIds = [];
+
+      async function loadMonthStudentIds(monthNumber) {
+        if (!supabase) return [];
+        const { data, error } = await supabase
+          .from('teacher_month_students')
+          .select('id, student_id')
+          .eq('teacher_id', teacherId)
+          .eq('month_number', monthNumber);
+        if (error) return [];
+        return (data || []).map(function(r) { return { id: r.id, student_id: r.student_id }; });
+      }
+
+      function renderMonthStudentIds() {
+        if (!editMonthStudentIdsEl) return;
+        if (monthStudentIds.length === 0) {
+          editMonthStudentIdsEl.innerHTML = '<li class="list-group-item text-muted">No students added yet.</li>';
+          return;
+        }
+        editMonthStudentIdsEl.innerHTML = monthStudentIds.map(function(s) {
+          var sid = (s.student_id || '').replace(/"/g, '&quot;');
+          var rowId = (s.id || '').replace(/"/g, '&quot;');
+          return '<li class="list-group-item d-flex justify-content-between align-items-center"><span class="font-monospace">' + sid + '</span><button type="button" class="btn btn-sm btn-outline-danger rounded-pill remove-student-id" data-row-id="' + rowId + '" data-student-id="' + sid + '" aria-label="Remove student"><i class="bi bi-x"></i></button></li>';
+        }).join('');
+      }
+
+      async function openEditModal(monthId) {
+        const month = months.find(m => m.id === monthId);
+        if (!month) return;
+        currentEditMonthId = monthId;
+        if (editMonthNumberDisplay) editMonthNumberDisplay.textContent = month.number;
+        if (supabase) {
+          try {
+            const row = await loadMonthContentFromSupabase(month.number);
+            if (row) {
+              month.content = {
+                sessions: row.sessions || [],
+                pdfs: row.pdfs || [],
+                quizzes: row.quizzes || [],
+                assessments: row.assessments || []
+              };
+              saveMonths();
+            }
+            monthStudentIds = await loadMonthStudentIds(month.number);
+          } catch (e) { console.error(e); }
+        }
+        renderEditMonthContentList(month);
+        renderMonthStudentIds();
+        if (addStudentIdInput) addStudentIdInput.value = '';
+        const modal = new bootstrap.Modal(editMonthModal);
+        modal.show();
+      }
+
+      if (addStudentIdBtn && addStudentIdInput) {
+        addStudentIdBtn.addEventListener('click', async function() {
+          const sid = addStudentIdInput.value.trim();
+          if (!sid) return;
+          const month = months.find(m => m.id === currentEditMonthId);
+          if (!month || !supabase) return;
+          const { error } = await supabase.from('teacher_month_students').insert({
+            teacher_id: teacherId,
+            teacher_name: fullName,
+            month_number: month.number,
+            student_id: sid
+          });
+          if (error) { alert(error.message || 'Could not add student.'); return; }
+          monthStudentIds = await loadMonthStudentIds(month.number);
+          renderMonthStudentIds();
+          addStudentIdInput.value = '';
+        });
+      }
+      if (editMonthStudentIdsEl) {
+        editMonthStudentIdsEl.addEventListener('click', async function(e) {
+          var btn = e.target.closest('.remove-student-id');
+          if (!btn) return;
+          var rowId = btn.getAttribute('data-row-id');
+          var studentIdVal = btn.getAttribute('data-student-id');
+          if (!supabase) return;
+          var month = months.find(function(m) { return m.id === currentEditMonthId; });
+          var monthNum = month ? month.number : null;
+          var deleted = false;
+          var res = null;
+          var res2 = null;
+          if (rowId) {
+            res = await supabase.from('teacher_month_students').delete().eq('id', rowId).select();
+            if (!res.error) deleted = true;
+          }
+          if (!deleted && studentIdVal && monthNum != null) {
+            res2 = await supabase.from('teacher_month_students').delete().eq('teacher_id', teacherId).eq('month_number', monthNum).eq('student_id', studentIdVal).select();
+            if (!res2.error) deleted = true;
+          }
+          if (!deleted && (rowId || studentIdVal)) {
+            var errMsg = (res && res.error) ? res.error.message : (res2 && res2.error) ? res2.error.message : 'Could not delete from server.';
+            alert('Failed to remove student: ' + errMsg);
+          }
+          if (deleted) {
+            if (rowId) monthStudentIds = monthStudentIds.filter(function(s) { return s.id !== rowId; });
+            else if (studentIdVal) monthStudentIds = monthStudentIds.filter(function(s) { return s.student_id !== studentIdVal; });
+            renderMonthStudentIds();
+          }
+        });
+      }
+
+      function renderEditMonthContentList(month) {
+        if (!editMonthContentItems) return;
+        var m = ensureMonthContent(month);
+        var items = [];
+        ['sessions', 'quizzes', 'pdfs', 'assessments'].forEach(function(type) {
+          var list = m.content[type] || [];
+          list.forEach(function(item, i) {
+            var name = (item.name || item.title || 'Untitled').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+            var url = item.url || '#';
+            var id = item.id || type + i;
+            items.push({ type: type, name: name, url: url, id: id });
+          });
+        });
+        if (items.length === 0) {
+          editMonthContentItems.innerHTML = '<li class="list-group-item text-muted small">No content added yet. Use the buttons above to add Sessions, Quizzes, PDFs, or Assessments.</li>';
+          return;
+        }
+        editMonthContentItems.innerHTML = items.map(function(it) {
+          var safeUrl = (it.url || '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+          var safeId = (it.id || '').replace(/"/g, '&quot;');
+          var safeType = (it.type || '').replace(/"/g, '&quot;');
+          return '<li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-1"><span>' + it.name + '</span><span class="d-flex align-items-center gap-1"><a href="' + safeUrl + '" target="_blank" rel="noopener" class="badge bg-success-subtle text-success-emphasis text-decoration-none">' + contentTypeLabels[it.type] + '</a><button type="button" class="btn btn-sm btn-outline-danger rounded-pill remove-content-item" data-type="' + safeType + '" data-item-id="' + safeId + '" data-item-url="' + safeUrl + '" aria-label="Remove"><i class="bi bi-trash"></i></button></span></li>';
+        }).join('');
+      }
+
+      if (editMonthContentItems) {
+        editMonthContentItems.addEventListener('click', async function(e) {
+          var btn = e.target.closest('.remove-content-item');
+          if (!btn) return;
+          var type = btn.getAttribute('data-type');
+          var itemId = btn.getAttribute('data-item-id');
+          var itemUrl = btn.getAttribute('data-item-url');
+          var month = months.find(function(m) { return m.id === currentEditMonthId; });
+          if (!month || !type || itemId == null) return;
+          var monthNum = month.number;
+          ensureMonthContent(month);
+          if (month.content[type]) {
+            month.content[type] = month.content[type].filter(function(item) { return (item.id || '') !== (itemId || ''); });
+          }
+          if (supabase) {
+            try {
+              await removeContentItemFromSupabase(monthNum, type, itemId);
+              var path = getStoragePathFromPublicUrl(itemUrl);
+              if (path && (type === 'sessions' || type === 'pdfs' || type === 'assessments')) {
+                await supabase.storage.from(BUCKET).remove([path]).catch(function() {});
+              }
+              var row = await loadMonthContentFromSupabase(monthNum);
+              if (row) month.content = { sessions: row.sessions || [], pdfs: row.pdfs || [], quizzes: row.quizzes || [], assessments: row.assessments || [] };
+            } catch (err) { console.error(err); }
+          }
+          saveMonths();
+          renderEditMonthContentList(month);
+        });
+      }
+
+      monthCardsContainer && monthCardsContainer.addEventListener('click', function(e) {
+        var editBtn = e.target.closest('.month-card-edit-btn');
+        if (editBtn) { openEditModal(editBtn.getAttribute('data-month-id')); return; }
+        var deleteBtn = e.target.closest('.month-card-delete-btn');
+        if (deleteBtn) { deleteMonth(deleteBtn.getAttribute('data-month-id')); }
+      });
+
+      const editContentTypeBtns = document.querySelectorAll('.edit-content-type-btn');
+      const addContentModal = document.getElementById('addContentModal');
+      const addContentTypeLabel = document.getElementById('addContentTypeLabel');
+      const addContentTypeInput = document.getElementById('addContentTypeInput');
+      const addContentForm = document.getElementById('addContentForm');
+      const addContentTitle = document.getElementById('addContentTitle');
+      const addContentUrlWrap = document.getElementById('addContentUrlWrap');
+      const addContentFileWrap = document.getElementById('addContentFileWrap');
+      const addContentFileHint = document.getElementById('addContentFileHint');
+      const addContentSubmitBtn = document.getElementById('addContentSubmitBtn');
+      const addContentError = document.getElementById('addContentError');
+
+      const BUCKET = 'teacher-content';
+      const teacherId = user.id;
+      const teacherNameSanitized = fullName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 50) || 'Teacher';
+
+      const addContentUploadProgress = document.getElementById('addContentUploadProgress');
+
+      function setUploadProgress(visible) {
+        if (addContentUploadProgress) addContentUploadProgress.classList.toggle('d-none', !visible);
+      }
+
+      function sanitizeFileName(str) {
+        return String(str).replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 80) || 'file';
+      }
+
+      function getContentRow(monthNumber) {
+        return supabase
+          .from('teacher_month_content')
+          .select('*')
+          .eq('teacher_id', teacherId)
+          .eq('month_number', monthNumber)
+          .single();
+      }
+
+      function upsertContentRow(monthNumber, column, newItem) {
+        return getContentRow(monthNumber).then(function(res) {
+          const existing = (res.data && res.data[column]) ? (Array.isArray(res.data[column]) ? res.data[column] : []) : [];
+          const updated = [...existing, newItem];
+          const payload = {
+            teacher_id: teacherId,
+            teacher_name: fullName,
+            month_number: monthNumber,
+            [column]: updated,
+            updated_at: new Date().toISOString()
+          };
+          if (res.data && res.data.id) {
+            return supabase.from('teacher_month_content').update(payload).eq('id', res.data.id).select();
+          }
+          return supabase.from('teacher_month_content').insert(payload).select();
+        });
+      }
+
+      function loadMonthContentFromSupabase(monthNumber) {
+        if (!supabase) return Promise.resolve(null);
+        return getContentRow(monthNumber).then(function(res) {
+          if (res.data) return res.data;
+          return null;
+        });
+      }
+
+      function removeContentItemFromSupabase(monthNumber, column, itemId) {
+        if (!supabase) return Promise.resolve();
+        return getContentRow(monthNumber).then(function(res) {
+          if (!res.data || !res.data.id) return;
+          var existing = (res.data[column] && Array.isArray(res.data[column])) ? res.data[column] : [];
+          var updated = existing.filter(function(item) { return (item.id || '') !== (itemId || ''); });
+          var payload = {
+            teacher_id: teacherId,
+            teacher_name: fullName,
+            month_number: monthNumber,
+            [column]: updated,
+            updated_at: new Date().toISOString()
+          };
+          return supabase.from('teacher_month_content').update(payload).eq('id', res.data.id).select();
+        });
+      }
+
+      function getStoragePathFromPublicUrl(url) {
+        if (!url || typeof url !== 'string') return null;
+        var base = SUPABASE_URL.replace(/\/$/, '') + '/storage/v1/object/public/' + BUCKET + '/';
+        if (url.indexOf(base) !== 0) return null;
+        return decodeURIComponent(url.slice(base.length));
+      }
+
+      editContentTypeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const type = btn.getAttribute('data-type');
+          if (!currentEditMonthId || !type) return;
+          if (addContentTypeLabel) addContentTypeLabel.textContent = contentTypeLabels[type] || type;
+          if (addContentTypeInput) addContentTypeInput.value = type;
+          if (addContentForm) addContentForm.reset();
+          if (addContentError) addContentError.style.display = 'none';
+          setUploadProgress(false);
+          const isQuiz = type === 'quizzes';
+          if (addContentUrlWrap) addContentUrlWrap.classList.toggle('d-none', !isQuiz);
+          if (addContentFileWrap) addContentFileWrap.classList.toggle('d-none', isQuiz);
+          if (addContentFileHint) addContentFileHint.classList.toggle('d-none', isQuiz);
+          if (addContentTitle) addContentTitle.required = isQuiz ? false : false;
+          const addModal = new bootstrap.Modal(addContentModal);
+          addModal.show();
+        });
+      });
+
+      addContentForm && addContentForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const type = (addContentTypeInput && addContentTypeInput.value) || 'sessions';
+        const title = (addContentTitle && addContentTitle.value.trim()) || '';
+        const month = months.find(m => m.id === currentEditMonthId);
+        if (!month) return;
+        const monthNum = month.number;
+        const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : type + Date.now();
+        const addErrorEl = addContentError;
+        const submitBtn = addContentSubmitBtn;
+        const modalEl = addContentModal;
+
+        function showErr(msg) {
+          if (addErrorEl) { addErrorEl.textContent = msg; addErrorEl.style.display = 'block'; }
+        }
+        function hideErr() {
+          if (addErrorEl) addErrorEl.style.display = 'none';
+        }
+
+        if (type === 'quizzes') {
+          const urlInput = document.getElementById('addContentUrl');
+          const url = urlInput && urlInput.value.trim();
+          if (!url) { showErr('Please enter a quiz link.'); return; }
+          const name = title || ('Quiz ' + (month.content.quizzes.length + 1));
+          const newItem = { id, name, url: url, created_at: new Date().toISOString() };
+          if (!supabase) {
+            ensureMonthContent(month);
+            if (!month.content.quizzes) month.content.quizzes = [];
+            month.content.quizzes.push(newItem);
+            saveMonths();
+            renderEditMonthContentList(month);
+            bootstrap.Modal.getInstance(modalEl).hide();
+            return;
+          }
+          submitBtn.disabled = true;
+          hideErr();
+          try {
+            await upsertContentRow(monthNum, 'quizzes', newItem);
+            const row = await loadMonthContentFromSupabase(monthNum);
+            if (row) {
+              month.content = { sessions: row.sessions || [], pdfs: row.pdfs || [], quizzes: row.quizzes || [], assessments: row.assessments || [] };
+              saveMonths();
+            }
+            renderEditMonthContentList(month);
+            bootstrap.Modal.getInstance(modalEl).hide();
+          } catch (err) {
+            showErr(err.message || 'Failed to save quiz.');
+          }
+          submitBtn.disabled = false;
+          return;
+        }
+
+        const fileInput = document.getElementById('addContentFile');
+        const file = fileInput && fileInput.files && fileInput.files[0];
+        if (!file) { showErr('Please choose a file to upload.'); return; }
+        if (!supabase) { showErr('Supabase is required for file uploads. Set your project URL and anon key in the dashboard script.'); return; }
+
+        const existingList = (month.content && month.content[type]) ? month.content[type] : [];
+        const count = existingList.length + 1;
+        const ext = (file.name.split('.').pop() || '').slice(0, 8) || 'bin';
+        const baseName = title
+          ? sanitizeFileName(title) + '-' + teacherNameSanitized + '-' + 'month' + monthNum
+          : type.slice(0, -1) + '(' + count + ')month(' + monthNum + ')';
+        const storageFileName = baseName + '.' + ext;
+        const folder = type; // sessions | pdfs | assessments
+        const storagePath = teacherId + '/month_' + monthNum + '/' + folder + '/' + storageFileName;
+
+        submitBtn.disabled = true;
+        hideErr();
+        setUploadProgress(true);
+
+        try {
+          let publicUrl = null;
+          if (supabase) {
+            var uploadRes = await supabase.storage.from(BUCKET).upload(storagePath, file, { upsert: true });
+            if (uploadRes.error) throw new Error(uploadRes.error.message || 'Upload failed.');
+            var urlData = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
+            publicUrl = urlData.data.publicUrl;
+          }
+          const displayName = title || (type.slice(0, -1) + '(' + count + ')month(' + monthNum + ')');
+          const newItem = { id, name: displayName, url: publicUrl || '#', created_at: new Date().toISOString() };
+          if (supabase) {
+            await upsertContentRow(monthNum, type, newItem);
+            const row = await loadMonthContentFromSupabase(monthNum);
+            if (row) month.content = { sessions: row.sessions || [], pdfs: row.pdfs || [], quizzes: row.quizzes || [], assessments: row.assessments || [] };
+          } else {
+            ensureMonthContent(month);
+            if (!month.content[type]) month.content[type] = [];
+            month.content[type].push(newItem);
+          }
+          saveMonths();
+          renderEditMonthContentList(month);
+          setUploadProgress(false);
+          bootstrap.Modal.getInstance(modalEl).hide();
+        } catch (err) {
+          setUploadProgress(false);
+          showErr(err.message || 'Upload or save failed.');
+        }
+        submitBtn.disabled = false;
+      });
+
+      // Sidebar nav
+      const navButtons = document.querySelectorAll('.dashboard-nav-item');
+      const sections = document.querySelectorAll('.dashboard-section');
+      const studentsTableBody = document.getElementById('studentsTableBody');
+      const studentsTableEmpty = document.getElementById('studentsTableEmpty');
+      const studentsTableLoading = document.getElementById('studentsTableLoading');
+      const studentsTableWrap = document.getElementById('studentsTable');
+      const refreshStudentsBtn = document.getElementById('refreshStudentsBtn');
+
+      function escapeHtml(s) {
+        if (s == null || s === '') return '—';
+        const t = String(s);
+        return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function renderMonthsCell(monthList) {
+        if (!monthList || monthList.length === 0) return '—';
+        var sorted = monthList.slice().sort(function(a, b) { return a - b; });
+        if (sorted.length === 1) {
+          return '<span class="badge bg-success-subtle text-success-emphasis">Month ' + sorted[0] + '</span>';
+        }
+        var listItems = sorted.map(function(m) {
+          return '<li><span class="dropdown-item-text"><span class="badge bg-success-subtle text-success-emphasis">Month ' + m + '</span></span></li>';
+        }).join('');
+        return '<div class="dropdown"><button class="btn btn-sm btn-outline-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">' + sorted.length + ' months</button><ul class="dropdown-menu dropdown-menu-end">' + listItems + '</ul></div>';
+      }
+
+      function loadStudentsTable() {
+        if (!studentsTableBody || !supabase || !teacherId) {
+          if (studentsTableEmpty) studentsTableEmpty.style.display = 'block';
+          if (studentsTableWrap) studentsTableWrap.style.display = 'none';
+          return;
+        }
+        if (studentsTableLoading) studentsTableLoading.style.display = 'block';
+        if (studentsTableEmpty) studentsTableEmpty.style.display = 'none';
+        if (studentsTableWrap) studentsTableWrap.style.display = 'table';
+        supabase.from('teacher_month_students').select('student_id, month_number').eq('teacher_id', teacherId).then(function(res) {
+          const rows = res.data || [];
+          const byStudent = {};
+          rows.forEach(function(r) {
+            const sid = r.student_id || '';
+            if (!byStudent[sid]) byStudent[sid] = [];
+            if (r.month_number != null && byStudent[sid].indexOf(r.month_number) === -1) byStudent[sid].push(r.month_number);
+          });
+          const studentIds = Object.keys(byStudent).filter(Boolean).sort();
+          if (studentIds.length === 0) {
+            if (studentsTableLoading) studentsTableLoading.style.display = 'none';
+            if (studentsTableWrap) studentsTableWrap.style.display = 'none';
+            if (studentsTableEmpty) studentsTableEmpty.style.display = 'block';
+            studentsTableBody.innerHTML = '';
+            return;
+          }
+          (supabaseStudents || supabase).from('students').select('student_id, name, email, school, number, parent_name, parent_number').in('student_id', studentIds).then(function(profilesRes) {
+            if (studentsTableLoading) studentsTableLoading.style.display = 'none';
+            const profiles = (profilesRes.data || []).reduce(function(acc, p) {
+              acc[p.student_id] = p;
+              return acc;
+            }, {});
+            if (studentsTableEmpty) studentsTableEmpty.style.display = 'none';
+            if (studentsTableWrap) studentsTableWrap.style.display = 'table';
+            studentsTableBody.innerHTML = studentIds.map(function(sid, index) {
+              const monthList = byStudent[sid] || [];
+              const monthsCell = renderMonthsCell(monthList);
+              const p = profiles[sid] || {};
+              return '<tr><td>' + (index + 1) + '</td><td class="font-monospace">' + escapeHtml(sid) + '</td><td>' + escapeHtml(p.name) + '</td><td>' + escapeHtml(p.email) + '</td><td>' + escapeHtml(p.school) + '</td><td>' + escapeHtml(p.number) + '</td><td>' + escapeHtml(p.parent_name) + '</td><td>' + escapeHtml(p.parent_number) + '</td><td>' + monthsCell + '</td></tr>';
+            }).join('');
+          }).catch(function() {
+            if (studentsTableLoading) studentsTableLoading.style.display = 'none';
+            if (studentsTableEmpty) studentsTableEmpty.style.display = 'none';
+            if (studentsTableWrap) studentsTableWrap.style.display = 'table';
+            studentsTableBody.innerHTML = studentIds.map(function(sid, index) {
+              const monthList = byStudent[sid] || [];
+              const monthsCell = renderMonthsCell(monthList);
+              return '<tr><td>' + (index + 1) + '</td><td class="font-monospace">' + escapeHtml(sid) + '</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>' + monthsCell + '</td></tr>';
+            }).join('');
+          });
+        }).catch(function() {
+          if (studentsTableLoading) studentsTableLoading.style.display = 'none';
+          if (studentsTableEmpty) studentsTableEmpty.style.display = 'block';
+          if (studentsTableWrap) studentsTableWrap.style.display = 'none';
+          studentsTableBody.innerHTML = '';
+        });
+      }
+
+      function showSection(sectionKey) {
+        sections.forEach(sec => {
+          sec.classList.toggle('active', sec.id === 'section-' + sectionKey);
+        });
+        navButtons.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-section') === sectionKey));
+        if (sectionKey === 'students') loadStudentsTable();
+      }
+      navButtons.forEach(btn => {
+        btn.addEventListener('click', () => { const k = btn.getAttribute('data-section'); if (k) showSection(k); });
+      });
+      if (refreshStudentsBtn) refreshStudentsBtn.addEventListener('click', loadStudentsTable);
+
+      // Logout
+      const logoutBtn = document.getElementById('dashboardLogout');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+          localStorage.removeItem('stemify_token');
+          localStorage.removeItem('stemify_user');
+          localStorage.removeItem('stemify_teacher_user');
+          window.location.href = 'signin.html';
+        });
+      }
+    })();
+  </script>
+
+</body>
+
+</html>

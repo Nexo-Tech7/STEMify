@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Sign In - STEMify Educational Platform</title>
+  <meta name="description" content="Sign in or create an account on STEMify - Your educational platform for teachers and students">
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent-color: #5fcf80;
+      --heading-color: #37423b;
+      --default-color: #444444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      font-family: "Open Sans", system-ui, sans-serif;
+      min-height: 100vh;
+      margin: -20px 0 50px;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-weight: bold;
+      margin: 0;
+      color: var(--heading-color);
+      font-family: "Raleway", sans-serif;
+    }
+
+    p {
+      font-size: 14px;
+      font-weight: 100;
+      line-height: 20px;
+      letter-spacing: 0.5px;
+      margin: 20px 0 30px;
+    }
+
+    span {
+      font-size: 12px;
+      color: var(--default-color);
+    }
+
+    a {
+      color: var(--accent-color);
+      font-size: 14px;
+      text-decoration: none;
+      margin: 15px 0;
+    }
+
+    a:hover {
+      color: #4ab96a;
+    }
+
+    button {
+      border-radius: 20px;
+      border: 1px solid var(--accent-color);
+      background-color: var(--accent-color);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 12px 45px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: transform 80ms ease-in, background 0.3s;
+    }
+
+    button:hover {
+      background-color: #4ab96a;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    button:focus {
+      outline: none;
+    }
+
+    button.ghost {
+      background-color: transparent;
+      border-color: #FFFFFF;
+    }
+
+    button.ghost:hover {
+      background-color: rgba(255,255,255,0.2);
+    }
+
+    form {
+      background-color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-direction: column;
+      padding: 0 50px;
+      height: 100%;
+      text-align: center;
+      overflow-y: auto;
+    }
+
+    .sign-in-form {
+      justify-content: center;
+    }
+
+    .sign-up-form-scroll {
+      padding-top: 30px;
+      padding-bottom: 30px;
+      justify-content: flex-start;
+    }
+
+    .sign-up-form-scroll input,
+    .sign-up-form-scroll select {
+      margin: 6px 0;
+    }
+
+    .sign-up-form-scroll button {
+      margin-top: 10px;
+    }
+
+    input, select {
+      background-color: #eee;
+      border: none;
+      padding: 12px 15px;
+      margin: 8px 0;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: auto;
+    }
+
+    input.error {
+      border: 1px solid #df1529;
+    }
+
+    .password-error {
+      color: #df1529;
+      font-size: 11px;
+      display: none;
+    }
+
+    .auth-container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 14px 28px rgba(0,0,0,0.12), 0 10px 10px rgba(0,0,0,0.08);
+      position: relative;
+      overflow: hidden;
+      width: 920px;
+      max-width: 100%;
+      min-height: 640px;
+    }
+
+    .form-container {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      transition: all 0.6s ease-in-out;
+    }
+
+    .sign-in-container {
+      left: 0;
+      width: 50%;
+      z-index: 2;
+    }
+
+    .auth-container.right-panel-active .sign-in-container {
+      transform: translateX(100%);
+    }
+
+    .sign-up-container {
+      left: 0;
+      width: 50%;
+      opacity: 0;
+      z-index: 1;
+    }
+
+    .auth-container.right-panel-active .sign-up-container {
+      transform: translateX(100%);
+      opacity: 1;
+      z-index: 5;
+      animation: show 0.6s;
+    }
+
+    @keyframes show {
+      0%, 49.99% {
+        opacity: 0;
+        z-index: 1;
+      }
+      50%, 100% {
+        opacity: 1;
+        z-index: 5;
+      }
+    }
+
+    .overlay-container {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+      transition: transform 0.6s ease-in-out;
+      z-index: 100;
+    }
+
+    .auth-container.right-panel-active .overlay-container {
+      transform: translateX(-100%);
+    }
+
+    .overlay {
+      background: linear-gradient(135deg, var(--accent-color) 0%, #4ab96a 100%);
+      color: #FFFFFF;
+      position: relative;
+      left: -100%;
+      height: 100%;
+      width: 200%;
+      transform: translateX(0);
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .auth-container.right-panel-active .overlay {
+      transform: translateX(50%);
+    }
+
+    .overlay-panel {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 0 40px;
+      text-align: center;
+      top: 0;
+      height: 100%;
+      width: 50%;
+      transform: translateX(0);
+      transition: transform 0.6s ease-in-out;
+    }
+
+    .overlay-left {
+      transform: translateX(-20%);
+    }
+
+    .auth-container.right-panel-active .overlay-left {
+      transform: translateX(0);
+    }
+
+    .overlay-right {
+      right: 0;
+      transform: translateX(0);
+    }
+
+    .auth-container.right-panel-active .overlay-right {
+      transform: translateX(20%);
+    }
+
+    .back-home {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      color: var(--heading-color);
+      font-size: 14px;
+    }
+
+    .back-home:hover {
+      color: var(--accent-color);
+    }
+  </style>
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <a href="index.html" class="back-home"><i class="bi bi-arrow-left"></i> Back to Home</a>
+
+  <div class="auth-container" id="container">
+    <div class="form-container sign-up-container">
+    
+    
+    
+    <div style="
+  max-width: 420px;
+  margin: auto;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background-color: #fff;
+  border-radius: 10px;
+  position: relative;
+  top: 130px;
+  overflow: hidden;
+  width: 920px;
+  max-width: 100%;
+  min-height: 640px;
+">
+
+  <h1>Create Account</h1>
+  <span style="display:block; margin-bottom:20px; color:#555;">
+    Account creation is currently disabled.
+  </span>
+
+  <p style="margin-bottom:25px; font-size:15px;">
+    To create an account, please contact us directly through one of the options below:
+  </p>
+
+  <!-- WhatsApp -->
+  <a href="https://wa.me/201060410426"
+     target="_blank"
+     style="
+       display:block;
+       margin-bottom:12px;
+       padding:12px;
+       border-radius:12px;
+       background:#25D366;
+       color:#fff;
+       text-decoration:none;
+       font-weight:bold;
+     ">
+    💬 Contact via WhatsApp
+  </a>
+
+  <!-- Phone -->
+  <a href="tel:+201060410426"
+     style="
+       display:block;
+       margin-bottom:12px;
+       padding:12px;
+       border-radius:12px;
+       background:#007bff;
+       color:#fff;
+       text-decoration:none;
+       font-weight:bold;
+     ">
+    📞 Call Us: +20 106 041 0426
+  </a>
+
+  <!-- Email -->
+  <a href="mailto:hamdyabuelkhair@gmail.com"
+     style="
+       display:block;
+       padding:12px;
+       border-radius:12px;
+       background:#333;
+       color:#fff;
+       text-decoration:none;
+       font-weight:bold;
+     ">
+    ✉️ Email Us
+  </a>
+
+</div>
+
+    </div>
+    <div class="form-container sign-in-container">
+      <form action="#" id="signinForm" class="sign-in-form" method="post">
+        <h1>Sign in</h1>
+        <span>Use your teacher account</span>
+        <span class="password-error" id="signinApiError" style="display:none;"></span>
+        <input type="email" name="email" id="signinEmail" placeholder="Email" required />
+        <input type="password" name="password" id="signinPassword" placeholder="Password" required />
+        <a href="mailto:hamdyabuelkhair@gmail.com">Forgot your password?</a>
+       
+        <button type="submit">Sign In</button>
+      </form>
+    </div>
+    <div class="overlay-container">
+      <div class="overlay">
+        <div class="overlay-panel overlay-left">
+          <h1>Welcome Back!</h1>
+          <p>To keep connected with us please login with your personal info</p>
+          <button class="ghost" id="signIn">Sign In</button>
+        </div>
+        <div class="overlay-panel overlay-right">
+          <h1>Hello, Friend!</h1>
+          <p>Enter your personal details and start your journey with us</p>
+          <button class="ghost" id="signUp">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Initialize Supabase client (TEACHER project)
+    const SUPABASE_URL = 'https://suzfqdinxinywbnmdxfx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1emZxZGlueGlueXdibm1keGZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NDI2NDMsImV4cCI6MjA4NjMxODY0M30.96g5KWq26xztjUfTfBi5Z4xBo0r4LdTp3ZuPofqcTWU';
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const signUpButton = document.getElementById('signUp');
+    const signInButton = document.getElementById('signIn');
+    const container = document.getElementById('container');
+    const signupForm = document.getElementById('signupForm');
+    const signinForm = document.getElementById('signinForm');
+    const passwordInput = document.getElementById('signupPassword');
+    const passwordAgainInput = document.getElementById('signupPasswordAgain');
+    const passwordError = document.getElementById('passwordError');
+    const signupApiError = document.getElementById('signupApiError');
+    const signinApiError = document.getElementById('signinApiError');
+
+    // Student ID Generator Function
+    async function generateStudentID() {
+      const year = new Date().getFullYear();
+      const prefix = 'STEM';
+      
+      // Generate a random 6-digit number
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      let studentID = `${prefix}-${year}-${randomNum}`;
+      
+      // Check if ID already exists in database
+      let exists = true;
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      while (exists && attempts < maxAttempts) {
+        const { data, error } = await supabaseClient
+          .from('students')
+          .select('student_id')
+          .eq('student_id', studentID)
+          .single();
+        
+        // Handle different error cases
+        if (error) {
+          // PGRST116 = no rows returned (ID is unique)
+          if (error.code === 'PGRST116') {
+            exists = false;
+          }
+          // 404 = table doesn't exist yet, but we'll proceed with the ID
+          else if (error.code === 'PGRST301' || error.message?.includes('404') || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+            console.warn('Students table may not exist yet. Proceeding with generated ID.');
+            exists = false;
+          }
+          // Other errors - assume unique and proceed
+          else {
+            console.warn('Error checking student ID uniqueness:', error.message);
+            exists = false;
+          }
+        } else if (data) {
+          // ID exists, generate new one
+          const randomNum = Math.floor(100000 + Math.random() * 900000);
+          studentID = `${prefix}-${year}-${randomNum}`;
+          attempts++;
+        } else {
+          // No data and no error, assume unique
+          exists = false;
+        }
+      }
+      
+      return studentID;
+    }
+
+    signUpButton.addEventListener('click', () => {
+      container.classList.add("right-panel-active");
+      signupApiError.style.display = 'none';
+      signinApiError.style.display = 'none';
+    });
+
+    signInButton.addEventListener('click', () => {
+      container.classList.remove("right-panel-active");
+      signupApiError.style.display = 'none';
+      signinApiError.style.display = 'none';
+    });
+
+    function validatePasswordMatch() {
+      if (!passwordAgainInput || !passwordInput) return true;
+      if (passwordAgainInput.value && passwordInput.value !== passwordAgainInput.value) {
+        passwordAgainInput.classList.add('error');
+        passwordError.style.display = 'block';
+        return false;
+      } else {
+        passwordAgainInput.classList.remove('error');
+        passwordError.style.display = 'none';
+        return true;
+      }
+    }
+
+    if (passwordAgainInput) {
+      passwordAgainInput.addEventListener('input', validatePasswordMatch);
+      passwordAgainInput.addEventListener('blur', validatePasswordMatch);
+    }
+
+    if (signupForm) signupForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      signupApiError.style.display = 'none';
+      if (!validatePasswordMatch()) return;
+
+      const btn = signupForm.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Signing up...';
+
+      try {
+        const formData = new FormData(signupForm);
+        const email = formData.get('email');
+        const password = formData.get('password');
+        const name = formData.get('name');
+        const number = formData.get('number');
+        const parentName = formData.get('parentName');
+        const parentNumber = formData.get('parentNumber');
+        const school = formData.get('school');
+
+        // Generate unique student ID
+        const studentID = await generateStudentID();
+
+        // Sign up user with Supabase Auth
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+          email: email.toLowerCase(),
+          password: password,
+          options: {
+            data: {
+              name: name,
+              student_id: studentID
+            }
+          }
+        });
+
+        if (authError) {
+          throw authError;
+        }
+
+        if (!authData.user) {
+          throw new Error('User creation failed. Please try again.');
+        }
+
+        // Check if email confirmation is required
+        // If session is null, email confirmation is likely required
+        const requiresEmailConfirmation = !authData.session;
+        
+        if (requiresEmailConfirmation) {
+          // Store student data in localStorage to create after email confirmation
+          localStorage.setItem('pending_student_data', JSON.stringify({
+            student_id: studentID,
+            user_id: authData.user.id,
+            name: name,
+            number: number,
+            parent_name: parentName,
+            parent_number: parentNumber,
+            email: email.toLowerCase(),
+            school: school
+          }));
+          
+          console.log('Email confirmation required. Student data stored locally. Will be created after email confirmation.');
+          
+          // Show success message but indicate email confirmation is needed
+          signupApiError.textContent = 'Account created! Please check your email to verify your account. After confirming, sign in and your student profile will be created automatically.';
+          signupApiError.style.display = 'block';
+          signupApiError.style.color = '#5fcf80';
+          btn.disabled = false;
+          btn.textContent = originalText;
+          return; // Exit early - student record will be created after email confirmation
+        }
+
+        // Wait longer for user to be fully created in auth.users table
+        // Supabase may need time to propagate the user to the database
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Try to insert using the function first (more reliable during signup)
+        let studentData = null;
+        let studentError = null;
+        let retryCount = 0;
+        const maxRetries = 5; // Increased retries
+        
+        // Retry loop for foreign key constraint violations
+        while (retryCount < maxRetries && !studentData) {
+          // Wait before each attempt (except the first one)
+          if (retryCount > 0) {
+            const waitTime = 1000 * retryCount; // 1s, 2s, 3s, 4s
+            console.log(`Waiting ${waitTime}ms before retry ${retryCount + 1}/${maxRetries}...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
+          
+          // First, try using the database function (if it exists)
+          const { data: functionResult, error: functionError } = await supabaseClient.rpc('insert_student_data', {
+            p_student_id: studentID,
+            p_user_id: authData.user.id,
+            p_name: name,
+            p_number: number,
+            p_parent_name: parentName,
+            p_parent_number: parentNumber,
+            p_email: email.toLowerCase(),
+            p_school: school
+          });
+
+          if (functionError) {
+            // Check error code for foreign key violation (23503)
+            const isForeignKeyError = functionError.code === '23503' || 
+                                     functionError.message?.includes('foreign key') || 
+                                     functionError.message?.includes('violates foreign key') ||
+                                     functionError.message?.includes('not present in table');
+            
+            if (isForeignKeyError) {
+              retryCount++;
+              if (retryCount < maxRetries) {
+                console.log(`Foreign key constraint error, retrying... (${retryCount}/${maxRetries})`);
+                continue;
+              }
+            }
+            
+            // If function doesn't exist, try direct insert
+            if (functionError.message?.includes('function') || functionError.message?.includes('does not exist')) {
+              // Function doesn't exist, try direct insert
+              const insertResult = await supabaseClient
+                .from('students')
+                .insert([
+                  {
+                    student_id: studentID,
+                    user_id: authData.user.id,
+                    name: name,
+                    number: number,
+                    parent_name: parentName,
+                    parent_number: parentNumber,
+                    email: email.toLowerCase(),
+                    school: school
+                  }
+                ])
+                .select()
+                .single();
+              
+              if (insertResult.error) {
+                const isFKError = insertResult.error.code === '23503' || 
+                                 insertResult.error.message?.includes('foreign key') || 
+                                 insertResult.error.message?.includes('violates foreign key');
+                
+                if (isFKError) {
+                  retryCount++;
+                  if (retryCount < maxRetries) {
+                    console.log(`Foreign key constraint error, retrying... (${retryCount}/${maxRetries})`);
+                    continue;
+                  }
+                }
+                studentError = insertResult.error;
+              } else {
+                studentData = insertResult.data;
+                break;
+              }
+            } else {
+              studentError = functionError;
+            }
+          } else if (functionResult) {
+            // Function worked
+            studentData = functionResult;
+            break;
+          }
+        }
+
+        if (studentError) {
+          // If student insert fails, log error
+          console.error('Failed to insert student data:', studentError);
+          
+          // Check if it's a table not found error
+          if (studentError.code === 'PGRST301' || studentError.message?.includes('404') || studentError.message?.includes('relation') || studentError.message?.includes('does not exist')) {
+            console.error('%c⚠️ DATABASE SETUP REQUIRED ⚠️', 'color: red; font-size: 16px; font-weight: bold;');
+            console.error('Please run this SQL in your Supabase SQL Editor:');
+            console.error(`
+CREATE TABLE IF NOT EXISTS students (
+  id BIGSERIAL PRIMARY KEY,
+  student_id TEXT UNIQUE NOT NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  number TEXT NOT NULL,
+  parent_name TEXT NOT NULL,
+  parent_number TEXT NOT NULL,
+  email TEXT NOT NULL,
+  school TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- Enable Row Level Security
+ALTER TABLE students ENABLE ROW LEVEL SECURITY;
+
+-- Create policy to allow users to read their own data
+CREATE POLICY "Users can view own student data"
+  ON students FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Create policy to allow users to insert their own data
+CREATE POLICY "Users can insert own student data"
+  ON students FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Create policy to allow users to update their own data
+CREATE POLICY "Users can update own student data"
+  ON students FOR UPDATE
+  USING (auth.uid() = user_id);
+            `);
+            throw new Error('Database table not found. Please create the "students" table in Supabase. Check supabase_setup.sql file.');
+          } 
+          // Check if it's an RLS policy violation
+          else if (studentError.code === '42501' || studentError.message?.includes('row-level security') || studentError.message?.includes('violates row-level security')) {
+            console.error('%c⚠️ RLS POLICY ISSUE ⚠️', 'color: orange; font-size: 16px; font-weight: bold;');
+            console.error('The database function insert_student_data may not exist. Please run the updated SQL from supabase_setup.sql');
+            throw new Error('Permission denied. Please run the complete SQL setup from supabase_setup.sql file in Supabase SQL Editor.');
+          } 
+          // Check if it's a foreign key constraint violation
+          else if (studentError.code === '23503' || studentError.message?.includes('foreign key') || studentError.message?.includes('violates foreign key constraint')) {
+            console.error('%c⚠️ FOREIGN KEY CONSTRAINT ERROR ⚠️', 'color: orange; font-size: 16px; font-weight: bold;');
+            console.error('The user may not exist in auth.users yet. Possible causes:');
+            console.error('1. Email confirmation is required in Supabase Auth settings');
+            console.error('2. User creation is still in progress');
+            console.error('3. Database replication delay');
+            console.error('');
+            console.error('SOLUTION: Go to Supabase Dashboard > Authentication > Settings');
+            console.error('Disable "Enable email confirmations" if you want immediate signup.');
+            console.error('Or wait for email confirmation before the student record can be created.');
+            throw new Error('User account creation is pending. If email confirmation is required, please check your email and confirm your account first. Otherwise, please try again in a few moments.');
+          }
+          else if (studentError.code === '23505') {
+            // Unique constraint violation
+            throw new Error('Student ID already exists. Please try again.');
+          } else {
+            throw new Error(`Failed to create student profile: ${studentError.message || 'Unknown error'}`);
+          }
+        }
+
+        // Store session and user data
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        if (sessionData.session) {
+          localStorage.setItem('stemify_token', sessionData.session.access_token);
+          localStorage.setItem('stemify_user', JSON.stringify({
+            id: authData.user.id,
+            student_id: studentID,
+            name: name,
+            email: email.toLowerCase(),
+            school: school
+          }));
+          window.location.href = 'teacher-dashboard.html';
+        } else {
+          // Email confirmation required
+          signupApiError.textContent = 'Account created! Please check your email to verify your account.';
+          signupApiError.style.display = 'block';
+          signupApiError.style.color = '#5fcf80';
+        }
+      } catch (err) {
+        console.error('Signup error:', err);
+        let errorMessage = err.message || 'Sign up failed. Please try again.';
+        
+        // Handle rate limiting
+        if (err.message?.includes('429') || err.message?.includes('Too Many Requests') || err.message?.includes('after') && err.message?.includes('seconds')) {
+          const match = err.message.match(/after (\d+) seconds/);
+          const seconds = match ? match[1] : 'a few';
+          errorMessage = `Too many requests. Please wait ${seconds} seconds before trying again.`;
+        }
+        
+        signupApiError.textContent = errorMessage;
+        signupApiError.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+
+    signinForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      signinApiError.style.display = 'none';
+
+      const btn = signinForm.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const email = document.getElementById('signinEmail').value;
+        const password = document.getElementById('signinPassword').value;
+
+        // Sign in with Supabase Auth
+        const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+          email: email.toLowerCase(),
+          password: password
+        });
+
+        if (authError) {
+          throw authError;
+        }
+
+        // Get teacher data from teachers table
+        let teacherData = null;
+        const { data: fetchedTeacherData, error: teacherError } = await supabaseClient
+          .from('teachers')
+          .select('*')
+          .eq('user_id', authData.user.id)
+          .single();
+
+        if (teacherError && teacherError.code !== 'PGRST116') {
+          console.error('Error fetching teacher data:', teacherError);
+        } else if (fetchedTeacherData) {
+          teacherData = fetchedTeacherData;
+        }
+
+        // If no teacher row, check for pending teacher data (from signup with email confirmation)
+        if (!teacherData) {
+          const pendingStr = localStorage.getItem('pending_teacher_data');
+          if (pendingStr) {
+            try {
+              const pending = JSON.parse(pendingStr);
+              if (pending.user_id === authData.user.id) {
+                const { data: created, error: createErr } = await supabaseClient
+                  .from('teachers')
+                  .insert([{
+                    user_id: authData.user.id,
+                    name: pending.name,
+                    email: pending.email,
+                    school: pending.school || null,
+                    subject: pending.subject || null
+                  }])
+                  .select()
+                  .single();
+                if (!createErr && created) {
+                  teacherData = created;
+                  localStorage.removeItem('pending_teacher_data');
+                }
+              } else {
+                localStorage.removeItem('pending_teacher_data');
+              }
+            } catch (e) {
+              localStorage.removeItem('pending_teacher_data');
+            }
+          }
+        }
+
+        if (!teacherData) {
+          signinApiError.textContent = 'No teacher account found. Please sign up first.';
+          signinApiError.style.display = 'block';
+          return;
+        }
+
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        if (sessionData.session) {
+          localStorage.setItem('stemify_token', sessionData.session.access_token);
+          if (sessionData.session.refresh_token) localStorage.setItem('stemify_refresh_token', sessionData.session.refresh_token);
+          localStorage.setItem('stemify_teacher_user', JSON.stringify({
+            id: authData.user.id,
+            name: teacherData.name,
+            email: teacherData.email,
+            school: teacherData.school || null,
+            subject: teacherData.subject || null
+          }));
+          window.location.href = 'teacher-dashboard.html';
+        } else {
+          throw new Error('Failed to create session');
+        }
+      } catch (err) {
+        console.error('Signin error:', err);
+        signinApiError.textContent = err.message || 'Sign in failed. Please check your credentials.';
+        signinApiError.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+  </script>
+
+</body>
+
+</html>

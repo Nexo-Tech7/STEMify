@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Teacher Sign Up - STEMify for Teachers</title>
+  <meta name="description" content="Create your STEMify teacher account using Supabase authentication.">
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --accent-color: #5fcf80;
+      --heading-color: #37423b;
+      --default-color: #444444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f9f9f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      font-family: "Open Sans", system-ui, sans-serif;
+      min-height: 100vh;
+      margin: -20px 0 50px;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-weight: bold;
+      margin: 0;
+      color: var(--heading-color);
+      font-family: "Raleway", sans-serif;
+    }
+
+    p {
+      font-size: 14px;
+      font-weight: 100;
+      line-height: 20px;
+      letter-spacing: 0.5px;
+      margin: 20px 0 30px;
+    }
+
+    span {
+      font-size: 12px;
+      color: var(--default-color);
+    }
+
+    a {
+      color: var(--accent-color);
+      font-size: 14px;
+      text-decoration: none;
+      margin: 15px 0;
+    }
+
+    a:hover {
+      color: #4ab96a;
+    }
+
+    button {
+      border-radius: 20px;
+      border: 1px solid var(--accent-color);
+      background-color: var(--accent-color);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 12px 45px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: transform 80ms ease-in, background 0.3s;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #4ab96a;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    button:focus {
+      outline: none;
+    }
+
+    form {
+      background-color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      flex-direction: column;
+      padding: 30px 50px;
+      height: 100%;
+      text-align: center;
+      overflow-y: auto;
+    }
+
+    input,
+    select {
+      background-color: #eee;
+      border: none;
+      padding: 12px 15px;
+      margin: 8px 0;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: auto;
+    }
+
+    input.error {
+      border: 1px solid #df1529;
+    }
+
+    .password-error {
+      color: #df1529;
+      font-size: 11px;
+      display: none;
+    }
+
+    .signup-container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12), 0 10px 10px rgba(0, 0, 0, 0.08);
+      position: relative;
+      width: 460px;
+      max-width: 100%;
+      min-height: 540px;
+      padding-top: 40px;
+    }
+
+    .back-home {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      color: var(--heading-color);
+      font-size: 14px;
+    }
+
+    .back-home:hover {
+      color: var(--accent-color);
+    }
+  </style>
+</head>
+
+<body>
+
+  <a href="index.html" class="back-home"><i class="bi bi-arrow-left"></i> Back to Home</a>
+
+  <div class="signup-container">
+    <form id="teacherSignupForm" method="post">
+      <h1>Create Teacher Account</h1>
+      <span>Fill in your details to register as a teacher</span>
+
+      <input type="text" name="name" id="signupName" placeholder="Full name" required />
+      <input type="email" name="email" id="signupEmail" placeholder="Email" required />
+      <input type="password" name="password" id="signupPassword" placeholder="Password" required />
+      <input type="password" name="passwordAgain" id="signupPasswordAgain" placeholder="Password (again)" required />
+      <span class="password-error" id="passwordError">Passwords do not match</span>
+
+      <input type="text" name="school" id="signupSchool" placeholder="School (optional)" />
+      <input type="text" name="subject" id="signupSubject" placeholder="Main subject (optional)" />
+
+      <span class="password-error" id="signupApiError" style="display:none;"></span>
+
+      <button type="submit">Sign Up</button>
+      <a href="signin.html">Already have an account? Sign in</a>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // Use the same teacher Supabase project as the sign-in page
+    const SUPABASE_URL = 'https://suzfqdinxinywbnmdxfx.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN1emZxZGlueGlueXdibm1keGZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA3NDI2NDMsImV4cCI6MjA4NjMxODY0M30.96g5KWq26xztjUfTfBi5Z4xBo0r4LdTp3ZuPofqcTWU';
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const signupForm = document.getElementById('teacherSignupForm');
+    const passwordInput = document.getElementById('signupPassword');
+    const passwordAgainInput = document.getElementById('signupPasswordAgain');
+    const passwordError = document.getElementById('passwordError');
+    const signupApiError = document.getElementById('signupApiError');
+
+    function validatePasswordMatch() {
+      if (passwordAgainInput.value && passwordInput.value !== passwordAgainInput.value) {
+        passwordAgainInput.classList.add('error');
+        passwordError.style.display = 'block';
+        return false;
+      } else {
+        passwordAgainInput.classList.remove('error');
+        passwordError.style.display = 'none';
+        return true;
+      }
+    }
+
+    passwordAgainInput.addEventListener('input', validatePasswordMatch);
+    passwordAgainInput.addEventListener('blur', validatePasswordMatch);
+
+    signupForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      signupApiError.style.display = 'none';
+      signupApiError.style.color = '#df1529';
+
+      if (!validatePasswordMatch()) return;
+
+      const btn = signupForm.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Signing up...';
+
+      try {
+        const name = document.getElementById('signupName').value.trim();
+        const email = document.getElementById('signupEmail').value.trim();
+        const password = passwordInput.value;
+        const school = document.getElementById('signupSchool').value.trim() || null;
+        const subject = document.getElementById('signupSubject').value.trim() || null;
+
+        // Sign up teacher with Supabase Auth
+        const { data: authData, error: authError } = await supabaseClient.auth.signUp({
+          email: email.toLowerCase(),
+          password: password,
+          options: {
+            data: {
+              name: name,
+              role: 'teacher'
+            }
+          }
+        });
+
+        if (authError) {
+          throw authError;
+        }
+
+        if (!authData.user) {
+          throw new Error('User creation failed. Please try again.');
+        }
+
+        const requiresEmailConfirmation = !authData.session;
+        if (requiresEmailConfirmation) {
+          localStorage.setItem('pending_teacher_data', JSON.stringify({
+            user_id: authData.user.id,
+            name: name,
+            email: email.toLowerCase(),
+            school: school,
+            subject: subject
+          }));
+          signupApiError.textContent = 'Account created! Please check your email to verify your teacher account, then sign in.';
+          signupApiError.style.display = 'block';
+          signupApiError.style.color = '#5fcf80';
+          btn.disabled = false;
+          btn.textContent = originalText;
+          return;
+        }
+
+        // Insert teacher profile into "teachers" table
+        const { error: insertError } = await supabaseClient
+          .from('teachers')
+          .insert([
+            {
+              user_id: authData.user.id,
+              name: name,
+              email: email.toLowerCase(),
+              school: school,
+              subject: subject
+            }
+          ])
+          .select();
+
+        if (insertError) {
+          console.error('Teacher insert error:', insertError);
+          throw new Error(insertError.message || 'Could not create teacher profile. Make sure you ran the SQL in Supabase to create the "teachers" table.');
+        }
+
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        if (sessionData.session) {
+          localStorage.setItem('stemify_token', sessionData.session.access_token);
+          localStorage.setItem('stemify_teacher_user', JSON.stringify({
+            id: authData.user.id,
+            name: name,
+            email: email.toLowerCase(),
+            school: school || null,
+            subject: subject || null
+          }));
+          window.location.href = 'teacher-dashboard.html';
+          return;
+        }
+        window.location.href = 'signin.html';
+      } catch (err) {
+        console.error('Teacher signup error:', err);
+        let errorMessage = err.message || 'Sign up failed. Please try again.';
+
+        if (err.message?.includes('429') || err.message?.includes('Too Many Requests')) {
+          const match = err.message.match(/after (\d+) seconds/);
+          const seconds = match ? match[1] : 'a few';
+          errorMessage = `Too many requests. Please wait ${seconds} seconds before trying again.`;
+        }
+
+        signupApiError.textContent = errorMessage;
+        signupApiError.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
+  </script>
+
+</body>
+
+</html>
+
