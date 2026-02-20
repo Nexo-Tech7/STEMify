@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS public.teacher_month_content (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   teacher_id    UUID NOT NULL,
   teacher_name  TEXT NOT NULL,
+  grade         INT NOT NULL DEFAULT 10,
   month_number  INT NOT NULL,
   sessions      JSONB DEFAULT '[]',
   pdfs          JSONB DEFAULT '[]',
@@ -19,11 +20,15 @@ CREATE TABLE IF NOT EXISTS public.teacher_month_content (
   updated_at    TIMESTAMPTZ DEFAULT now(),
   UNIQUE(teacher_id, month_number)
 );
-
+ 
 -- Each array item: { "id": "uuid", "name": "display name", "url": "https://..." }
 
 CREATE INDEX IF NOT EXISTS idx_teacher_month_content_lookup
   ON public.teacher_month_content(teacher_id, month_number);
+
+-- Optional composite index by teacher, grade, and month for faster lookups
+CREATE INDEX IF NOT EXISTS idx_teacher_month_content_teacher_grade_month
+  ON public.teacher_month_content(teacher_id, grade, month_number);
 
 ALTER TABLE public.teacher_month_content ENABLE ROW LEVEL SECURITY;
 

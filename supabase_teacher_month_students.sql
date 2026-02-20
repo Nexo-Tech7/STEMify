@@ -9,17 +9,21 @@ CREATE TABLE IF NOT EXISTS public.teacher_month_students (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   teacher_id    UUID NOT NULL,
   teacher_name  TEXT NOT NULL,
+  grade         INT NOT NULL DEFAULT 10,
   month_number  INT NOT NULL,
   student_id    TEXT NOT NULL,
   created_at    TIMESTAMPTZ DEFAULT now(),
   UNIQUE(teacher_id, month_number, student_id)
 );
-
+ 
 CREATE INDEX IF NOT EXISTS idx_teacher_month_students_student
   ON public.teacher_month_students(student_id);
 
 CREATE INDEX IF NOT EXISTS idx_teacher_month_students_teacher_month
   ON public.teacher_month_students(teacher_id, month_number);
+
+CREATE INDEX IF NOT EXISTS idx_teacher_month_students_teacher_grade_month
+  ON public.teacher_month_students(teacher_id, grade, month_number);
 
 ALTER TABLE public.teacher_month_students ENABLE ROW LEVEL SECURITY;
 

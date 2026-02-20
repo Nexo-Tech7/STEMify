@@ -93,11 +93,22 @@
           <div class="dashboard-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
               <h2 class="dashboard-card-title mb-0">Months</h2>
-              <p class="dashboard-card-subtitle mb-0">Add months and organize content (Sessions, Quizzes, PDFs, Assessments) for each.</p>
+              <p class="dashboard-card-subtitle mb-0">Choose a grade, then add months and organize content (Sessions, Quizzes, PDFs, Assessments) for each.</p>
             </div>
-            <button type="button" class="btn btn-success rounded-pill" id="addMonthBtn">
-              <i class="bi bi-plus-lg me-1"></i> Add Month
-            </button>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <label for="gradeSelect" class="form-label mb-0 small text-muted">Grade</label>
+                <select id="gradeSelect" class="form-select form-select-sm">
+                  <option value="">Select grade</option>
+                  <option value="10">Grade 10</option>
+                  <option value="11">Grade 11</option>
+                  <option value="12">Grade 12</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-success rounded-pill" id="addMonthBtn" disabled>
+                <i class="bi bi-plus-lg me-1"></i> Add Month
+              </button>
+            </div>
           </div>
 
           <!-- Add Month form (hidden by default) -->
@@ -127,8 +138,8 @@
 
           <div id="monthCardsEmpty" class="dashboard-empty-state mt-4" style="display: none;">
             <i class="bi bi-calendar3 dashboard-empty-icon"></i>
-            <p class="dashboard-empty-title">No months yet</p>
-            <p class="dashboard-empty-text">Click "Add Month" to create your first month and start adding content.</p>
+            <p class="dashboard-empty-title" id="monthCardsEmptyTitle">No months yet</p>
+            <p class="dashboard-empty-text" id="monthCardsEmptyText">Select a grade above, then click "Add Month" to create your first month and start adding content.</p>
           </div>
         </div>
       </section>
@@ -448,29 +459,31 @@
         });
       }
 
-      // --- Months data ---
+      // --- Months data & grade filter ---
+      const GRADE_OPTIONS = [10, 11, 12];
+      let selectedGrade = null;
       let months = [];
+      // Months are stored only in Supabase now. No localStorage persistence.
       function loadMonths() {
-        try {
-          const raw = localStorage.getItem(MONTHS_KEY);
-          if (!raw) return [];
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) return parsed;
-          if (parsed && Array.isArray(parsed.months)) return parsed.months;
-          return [];
-        } catch (e) { return []; }
+        return [];
       }
       function saveMonths() {
-        try { localStorage.setItem(MONTHS_KEY, JSON.stringify(months)); } catch (e) {}
+        // no-op: kept for backward compatibility in code paths
       }
 
       function ensureMonthContent(month) {
         if (!month.content) month.content = { sessions: [], quizzes: [], pdfs: [], assessments: [] };
+        if (typeof month.grade !== 'number') {
+          // Default any old months to Grade 10 so they still appear
+          month.grade = 10;
+        }
         return month;
       }
 
       const monthCardsContainer = document.getElementById('monthCardsContainer');
       const monthCardsEmpty = document.getElementById('monthCardsEmpty');
+      const monthCardsEmptyTitle = document.getElementById('monthCardsEmptyTitle');
+      const monthCardsEmptyText = document.getElementById('monthCardsEmptyText');
       const addMonthBtn = document.getElementById('addMonthBtn');
       const addMonthFormContainer = document.getElementById('addMonthFormContainer');
       const addMonthForm = document.getElementById('addMonthForm');
@@ -481,9 +494,27 @@
       function renderMonthCards() {
         if (!monthCardsContainer) return;
         monthCardsContainer.innerHTML = '';
-        const sorted = [...months].sort((a, b) => (a.number || 0) - (b.number || 0));
+
+        if (selectedGrade == null) {
+          if (monthCardsEmpty) {
+            monthCardsEmpty.style.display = 'block';
+            if (monthCardsEmptyTitle) monthCardsEmptyTitle.textContent = 'Select a grade';
+            if (monthCardsEmptyText) monthCardsEmptyText.textContent = 'Choose Grade 10, 11, or 12 above to see or add months for that grade.';
+          }
+          return;
+        }
+
+        const filtered = months.filter(function(m) {
+          const g = typeof m.grade === 'number' ? m.grade : 10;
+          return g === selectedGrade;
+        });
+        const sorted = filtered.sort((a, b) => (a.number || 0) - (b.number || 0));
         if (sorted.length === 0) {
-          if (monthCardsEmpty) monthCardsEmpty.style.display = 'block';
+          if (monthCardsEmpty) {
+            monthCardsEmpty.style.display = 'block';
+            if (monthCardsEmptyTitle) monthCardsEmptyTitle.textContent = 'No months yet';
+            if (monthCardsEmptyText) monthCardsEmptyText.textContent = 'Click \"Add Month\" to create the first month for Grade ' + selectedGrade + '.';
+          }
           return;
         }
         if (monthCardsEmpty) monthCardsEmpty.style.display = 'none';
@@ -496,7 +527,7 @@
                 ${month.photoDataUrl ? `<img src="${month.photoDataUrl}" alt="Month ${month.number}" class="month-card-image">` : '<div class="month-card-image month-card-image-placeholder"><i class="bi bi-calendar3"></i></div>'}
               </div>
               <div class="month-card-body">
-                <h3 class="month-card-title">Month ${month.number}</h3>
+                <h3 class="month-card-title">Grade ${month.grade} – Month ${month.number}</h3>
                 <div class="month-card-actions d-flex gap-2 flex-wrap">
                   <button type="button" class="btn btn-sm btn-outline-success rounded-pill month-card-edit-btn" data-month-id="${month.id}" aria-label="Edit month">
                     <i class="bi bi-pencil me-1"></i> Edit
@@ -509,6 +540,17 @@
             </div>
           `;
           monthCardsContainer.appendChild(col);
+        });
+      }
+
+      const gradeSelect = document.getElementById('gradeSelect');
+
+      if (gradeSelect) {
+        gradeSelect.addEventListener('change', function() {
+          const val = this.value ? parseInt(this.value, 10) : NaN;
+          selectedGrade = Number.isFinite(val) ? val : null;
+          if (addMonthBtn) addMonthBtn.disabled = !Number.isFinite(val);
+          renderMonthCards();
         });
       }
 
@@ -538,8 +580,9 @@
       });
 
       function addMonth(number, photoDataUrl) {
+        if (selectedGrade == null) return;
         const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'm' + Date.now();
-        const month = ensureMonthContent({ id, number, photoDataUrl: photoDataUrl || '', content: { sessions: [], quizzes: [], pdfs: [], assessments: [] } });
+        const month = ensureMonthContent({ id, number, grade: selectedGrade, photoDataUrl: photoDataUrl || '', content: { sessions: [], quizzes: [], pdfs: [], assessments: [] } });
         months.push(month);
         saveMonths();
         renderMonthCards();
@@ -580,25 +623,34 @@
         }
       }
 
-      function initMonthsAndRender() {
-        months = loadMonths().map(ensureMonthContent);
+      async function initMonthsAndRender() {
+        months = [];
         renderMonthCards();
-        if (supabase && user && user.id) {
-          supabase.from('teacher_month_content').select('month_number').eq('teacher_id', user.id).then(function(res) {
-            if (res.data && res.data.length > 0) {
-              const fromSupabase = res.data.map(function(r) { return r.month_number; }).filter(Boolean);
-              const existingNumbers = months.map(function(m) { return m.number; });
-              var changed = false;
-              fromSupabase.forEach(function(num) {
-                if (existingNumbers.indexOf(num) === -1) {
-                  const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'm' + Date.now() + '-' + num;
-                  months.push(ensureMonthContent({ id: id, number: num, photoDataUrl: '', content: { sessions: [], quizzes: [], pdfs: [], assessments: [] } }));
-                  changed = true;
-                }
-              });
-              if (changed) { saveMonths(); renderMonthCards(); }
-            }
-          }).catch(function() {});
+        if (!supabase || !teacherId) return;
+        try {
+          const { data, error } = await supabase
+            .from('teacher_month_content')
+            .select('month_number, grade, sessions, pdfs, quizzes, assessments')
+            .eq('teacher_id', teacherId);
+          if (error || !data) return;
+          months = data.map(function(row) {
+            const grade = typeof row.grade === 'number' ? row.grade : 10;
+            return ensureMonthContent({
+              id: 'm-' + grade + '-' + row.month_number,
+              number: row.month_number,
+              grade: grade,
+              photoDataUrl: '',
+              content: {
+                sessions: row.sessions || [],
+                pdfs: row.pdfs || [],
+                quizzes: row.quizzes || [],
+                assessments: row.assessments || []
+              }
+            });
+          });
+          renderMonthCards();
+        } catch (e) {
+          console.error('Failed to load months from Supabase', e);
         }
       }
 
