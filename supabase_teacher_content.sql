@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.teacher_month_content (
   assessments   JSONB DEFAULT '[]',
   created_at    TIMESTAMPTZ DEFAULT now(),
   updated_at    TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(teacher_id, month_number)
+  UNIQUE(teacher_id, grade, month_number)
 );
  
 -- Each array item: { "id": "uuid", "name": "display name", "url": "https://..." }
@@ -44,6 +44,10 @@ CREATE POLICY "Teachers can update own content"
   ON public.teacher_month_content FOR UPDATE TO authenticated
   USING (auth.uid() = teacher_id)
   WITH CHECK (auth.uid() = teacher_id);
+
+CREATE POLICY "Teachers can delete own content"
+  ON public.teacher_month_content FOR DELETE TO authenticated
+  USING (auth.uid() = teacher_id);
 
 -- 2) Storage bucket for uploaded files (Sessions, PDFs, Assessments)
 --    First create the bucket in Dashboard: Storage → New bucket →
@@ -80,3 +84,7 @@ CREATE POLICY "Teachers can delete own content"
     bucket_id = 'teacher-content'
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- If table already existed with UNIQUE(teacher_id, month_number), run this once to allow same month_number per grade:
+-- ALTER TABLE public.teacher_month_content DROP CONSTRAINT IF EXISTS teacher_month_content_teacher_id_month_number_key;
+-- ALTER TABLE public.teacher_month_content ADD CONSTRAINT teacher_month_content_teacher_grade_month_key UNIQUE (teacher_id, grade, month_number);

@@ -325,9 +325,12 @@
               <input type="file" class="form-control" id="addContentFile" accept="video/*,.pdf,image/*">
             </div>
             <div id="addContentUploadProgress" class="mb-3 d-none">
-              <div class="d-flex align-items-center gap-2">
-                <span class="spinner-border spinner-border-sm text-success" role="status" aria-hidden="true"></span>
+              <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="small text-muted">Uploading…</span>
+                <span id="addContentUploadPercent" class="small fw-semibold">0%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div id="addContentProgressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
             </div>
             <p class="small text-muted mb-2 d-none" id="addContentFileHint">File will be uploaded and saved as: <strong>your_name-teacher_name-month_X</strong> (or session(N)month(N) if no name)</p>
@@ -563,50 +566,57 @@
         if (addMonthFormContainer) addMonthFormContainer.style.display = 'none';
       });
 
-      addMonthForm && addMonthForm.addEventListener('submit', (e) => {
+      addMonthForm && addMonthForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const num = parseInt(monthNumberInput.value, 10);
+        var num = parseInt(monthNumberInput.value, 10);
         if (!num || num < 1) return;
-        const file = monthPhotoInput.files && monthPhotoInput.files[0];
+        var file = monthPhotoInput.files && monthPhotoInput.files[0];
         if (file && file.size <= 5 * 1024 * 1024) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            addMonth(num, reader.result);
-          };
+          var reader = new FileReader();
+          reader.onload = async function() { await addMonth(num, reader.result); };
           reader.readAsDataURL(file);
         } else {
-          addMonth(num, '');
+          await addMonth(num, '');
         }
       });
 
-      function addMonth(number, photoDataUrl) {
-        if (selectedGrade == null) return;
-        const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'm' + Date.now();
-        const month = ensureMonthContent({ id, number, grade: selectedGrade, photoDataUrl: photoDataUrl || '', content: { sessions: [], quizzes: [], pdfs: [], assessments: [] } });
-        months.push(month);
-        saveMonths();
-        renderMonthCards();
+      async function addMonth(number, photoDataUrl) {
+        if (selectedGrade == null || !supabase || !teacherId) return;
+        var payload = { teacher_id: teacherId, teacher_name: fullName, grade: selectedGrade, month_number: number };
+        if (photoDataUrl && (photoDataUrl + '').trim()) payload.cover_photo_url = photoDataUrl.trim();
+        var res = await supabase.from('teacher_months').insert(payload).select('id, grade, month_number, cover_photo_url').single();
+        if (res.error) { alert(res.error.message || 'Could not create month.'); return; }
+        var row = res.data;
+        months.push(ensureMonthContent({
+          id: row.id,
+          number: row.month_number,
+          grade: row.grade,
+          photoDataUrl: (row.cover_photo_url || '').trim() || '',
+          content: { sessions: [], quizzes: [], pdfs: [], assessments: [] }
+        }));
         if (addMonthFormContainer) addMonthFormContainer.style.display = 'none';
-        addMonthForm && addMonthForm.reset();
+        if (addMonthForm) addMonthForm.reset();
+        renderMonthCards();
       }
 
       async function deleteMonth(monthId) {
-        const month = months.find(function(m) { return m.id === monthId; });
+        var month = months.find(function(m) { return m.id === monthId; });
         if (!month) return;
         var msg = 'Delete Month ' + month.number + ' and all its content (sessions, quizzes, PDFs, assessments, student access)? This cannot be undone.';
         if (!confirm(msg)) return;
         var monthNum = month.number;
+        var gradeNum = typeof month.grade === 'number' ? month.grade : 10;
         months = months.filter(function(m) { return m.id !== monthId; });
-        saveMonths();
         renderMonthCards();
         if (addMonthFormContainer) addMonthFormContainer.style.display = 'none';
         if (supabase && teacherId) {
           try {
-            var contentRow = await getContentRow(monthNum);
+            await supabase.from('teacher_months').delete().eq('id', monthId);
+            var contentRow = await getContentRow(gradeNum, monthNum);
             if (contentRow.data && contentRow.data.id) {
               await supabase.from('teacher_month_content').delete().eq('id', contentRow.data.id);
             }
-            await supabase.from('teacher_month_students').delete().eq('teacher_id', teacherId).eq('month_number', monthNum);
+            await supabase.from('teacher_month_students').delete().eq('teacher_id', teacherId).eq('grade', gradeNum).eq('month_number', monthNum);
             var prefix = teacherId + '/month_' + monthNum + '/';
             var folders = ['sessions', 'pdfs', 'assessments'];
             for (var f = 0; f < folders.length; f++) {
@@ -623,35 +633,27 @@
         }
       }
 
+      async function fetchMonthsFromSupabase() {
+        if (!supabase || !teacherId) return;
+        var res = await supabase.from('teacher_months').select('id, teacher_id, grade, month_number, cover_photo_url').eq('teacher_id', teacherId);
+        if (res.error || !res.data) { months = []; return; }
+        months = (res.data || []).map(function(row) {
+          var grade = typeof row.grade === 'number' ? row.grade : 10;
+          return ensureMonthContent({
+            id: row.id,
+            number: row.month_number,
+            grade: grade,
+            photoDataUrl: (row.cover_photo_url || '').trim() || '',
+            content: { sessions: [], quizzes: [], pdfs: [], assessments: [] }
+          });
+        });
+      }
+
       async function initMonthsAndRender() {
         months = [];
         renderMonthCards();
-        if (!supabase || !teacherId) return;
-        try {
-          const { data, error } = await supabase
-            .from('teacher_month_content')
-            .select('month_number, grade, sessions, pdfs, quizzes, assessments')
-            .eq('teacher_id', teacherId);
-          if (error || !data) return;
-          months = data.map(function(row) {
-            const grade = typeof row.grade === 'number' ? row.grade : 10;
-            return ensureMonthContent({
-              id: 'm-' + grade + '-' + row.month_number,
-              number: row.month_number,
-              grade: grade,
-              photoDataUrl: '',
-              content: {
-                sessions: row.sessions || [],
-                pdfs: row.pdfs || [],
-                quizzes: row.quizzes || [],
-                assessments: row.assessments || []
-              }
-            });
-          });
-          renderMonthCards();
-        } catch (e) {
-          console.error('Failed to load months from Supabase', e);
-        }
+        await fetchMonthsFromSupabase();
+        renderMonthCards();
       }
 
       if (document.readyState === 'loading') {
@@ -661,8 +663,7 @@
       }
       window.addEventListener('pageshow', function(ev) {
         if (ev.persisted) {
-          months = loadMonths().map(ensureMonthContent);
-          renderMonthCards();
+          fetchMonthsFromSupabase().then(renderMonthCards);
         }
       });
 
@@ -678,15 +679,16 @@
       const addStudentIdBtn = document.getElementById('addStudentIdBtn');
       let monthStudentIds = [];
 
-      async function loadMonthStudentIds(monthNumber) {
+      async function loadMonthStudentIds(grade, monthNumber) {
         if (!supabase) return [];
-        const { data, error } = await supabase
+        var res = await supabase
           .from('teacher_month_students')
           .select('id, student_id')
           .eq('teacher_id', teacherId)
+          .eq('grade', grade)
           .eq('month_number', monthNumber);
-        if (error) return [];
-        return (data || []).map(function(r) { return { id: r.id, student_id: r.student_id }; });
+        if (res.error) return [];
+        return (res.data || []).map(function(r) { return { id: r.id, student_id: r.student_id }; });
       }
 
       function renderMonthStudentIds() {
@@ -709,7 +711,8 @@
         if (editMonthNumberDisplay) editMonthNumberDisplay.textContent = month.number;
         if (supabase) {
           try {
-            const row = await loadMonthContentFromSupabase(month.number);
+            var gradeNum = typeof month.grade === 'number' ? month.grade : 10;
+            var row = await loadMonthContentFromSupabase(gradeNum, month.number);
             if (row) {
               month.content = {
                 sessions: row.sessions || [],
@@ -717,9 +720,8 @@
                 quizzes: row.quizzes || [],
                 assessments: row.assessments || []
               };
-              saveMonths();
             }
-            monthStudentIds = await loadMonthStudentIds(month.number);
+            monthStudentIds = await loadMonthStudentIds(gradeNum, month.number);
           } catch (e) { console.error(e); }
         }
         renderEditMonthContentList(month);
@@ -735,14 +737,16 @@
           if (!sid) return;
           const month = months.find(m => m.id === currentEditMonthId);
           if (!month || !supabase) return;
-          const { error } = await supabase.from('teacher_month_students').insert({
+          var gradeNum = typeof month.grade === 'number' ? month.grade : 10;
+          var err = await supabase.from('teacher_month_students').insert({
             teacher_id: teacherId,
             teacher_name: fullName,
+            grade: gradeNum,
             month_number: month.number,
             student_id: sid
-          });
-          if (error) { alert(error.message || 'Could not add student.'); return; }
-          monthStudentIds = await loadMonthStudentIds(month.number);
+          }).then(function(r) { return r.error; });
+          if (err) { alert(err.message || 'Could not add student.'); return; }
+          monthStudentIds = await loadMonthStudentIds(gradeNum, month.number);
           renderMonthStudentIds();
           addStudentIdInput.value = '';
         });
@@ -763,8 +767,9 @@
             res = await supabase.from('teacher_month_students').delete().eq('id', rowId).select();
             if (!res.error) deleted = true;
           }
-          if (!deleted && studentIdVal && monthNum != null) {
-            res2 = await supabase.from('teacher_month_students').delete().eq('teacher_id', teacherId).eq('month_number', monthNum).eq('student_id', studentIdVal).select();
+          if (!deleted && studentIdVal && monthNum != null && month) {
+            var g = typeof month.grade === 'number' ? month.grade : 10;
+            res2 = await supabase.from('teacher_month_students').delete().eq('teacher_id', teacherId).eq('grade', g).eq('month_number', monthNum).eq('student_id', studentIdVal).select();
             if (!res2.error) deleted = true;
           }
           if (!deleted && (rowId || studentIdVal)) {
@@ -820,12 +825,13 @@
           }
           if (supabase) {
             try {
-              await removeContentItemFromSupabase(monthNum, type, itemId);
+              var gradeNum = typeof month.grade === 'number' ? month.grade : 10;
+              await removeContentItemFromSupabase(gradeNum, monthNum, type, itemId);
               var path = getStoragePathFromPublicUrl(itemUrl);
               if (path && (type === 'sessions' || type === 'pdfs' || type === 'assessments')) {
                 await supabase.storage.from(BUCKET).remove([path]).catch(function() {});
               }
-              var row = await loadMonthContentFromSupabase(monthNum);
+              var row = await loadMonthContentFromSupabase(gradeNum, monthNum);
               if (row) month.content = { sessions: row.sessions || [], pdfs: row.pdfs || [], quizzes: row.quizzes || [], assessments: row.assessments || [] };
             } catch (err) { console.error(err); }
           }
@@ -858,31 +864,70 @@
       const teacherNameSanitized = fullName.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 50) || 'Teacher';
 
       const addContentUploadProgress = document.getElementById('addContentUploadProgress');
+      const addContentProgressBar = document.getElementById('addContentProgressBar');
+      const addContentUploadPercent = document.getElementById('addContentUploadPercent');
 
-      function setUploadProgress(visible) {
+      function setUploadProgress(percent, visible) {
         if (addContentUploadProgress) addContentUploadProgress.classList.toggle('d-none', !visible);
+        if (addContentProgressBar) { addContentProgressBar.style.width = (percent || 0) + '%'; addContentProgressBar.setAttribute('aria-valuenow', percent || 0); }
+        if (addContentUploadPercent) addContentUploadPercent.textContent = (percent || 0) + '%';
+      }
+
+      function uploadFileWithProgress(file, storagePath) {
+        return new Promise(function(resolve, reject) {
+          supabase.auth.getSession().then(function(sessionRes) {
+            var token = sessionRes.data && sessionRes.data.session && sessionRes.data.session.access_token;
+            if (!token) {
+              reject(new Error('Not signed in. Please sign in again.'));
+              return;
+            }
+            var pathEnc = storagePath.split('/').map(function(p) { return encodeURIComponent(p); }).join('/');
+            var url = SUPABASE_URL.replace(/\/$/, '') + '/storage/v1/object/' + BUCKET + '/' + pathEnc;
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', url);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+            xhr.setRequestHeader('x-upsert', 'true');
+            xhr.upload.onprogress = function(e) {
+              if (e.lengthComputable) {
+                var pct = Math.min(100, Math.round((e.loaded / e.total) * 100));
+                setUploadProgress(pct, true);
+              }
+            };
+            xhr.onload = function() {
+              if (xhr.status >= 200 && xhr.status < 300) resolve();
+              else reject(new Error(xhr.responseText || xhr.statusText || 'Upload failed'));
+            };
+            xhr.onerror = function() { reject(new Error('Network error')); };
+            xhr.send(file);
+          }).catch(function(e) {
+            reject(e && e.message ? e : new Error('Could not get session'));
+          });
+        });
       }
 
       function sanitizeFileName(str) {
         return String(str).replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 80) || 'file';
       }
 
-      function getContentRow(monthNumber) {
+      function getContentRow(grade, monthNumber) {
         return supabase
           .from('teacher_month_content')
           .select('*')
           .eq('teacher_id', teacherId)
+          .eq('grade', grade)
           .eq('month_number', monthNumber)
-          .single();
+          .maybeSingle();
       }
 
-      function upsertContentRow(monthNumber, column, newItem) {
-        return getContentRow(monthNumber).then(function(res) {
-          const existing = (res.data && res.data[column]) ? (Array.isArray(res.data[column]) ? res.data[column] : []) : [];
-          const updated = [...existing, newItem];
-          const payload = {
+      function upsertContentRow(grade, monthNumber, column, newItem) {
+        return getContentRow(grade, monthNumber).then(function(res) {
+          var existing = (res.data && res.data[column]) ? (Array.isArray(res.data[column]) ? res.data[column] : []) : [];
+          var updated = existing.slice();
+          updated.push(newItem);
+          var payload = {
             teacher_id: teacherId,
             teacher_name: fullName,
+            grade: grade,
             month_number: monthNumber,
             [column]: updated,
             updated_at: new Date().toISOString()
@@ -894,23 +939,24 @@
         });
       }
 
-      function loadMonthContentFromSupabase(monthNumber) {
+      function loadMonthContentFromSupabase(grade, monthNumber) {
         if (!supabase) return Promise.resolve(null);
-        return getContentRow(monthNumber).then(function(res) {
+        return getContentRow(grade, monthNumber).then(function(res) {
           if (res.data) return res.data;
           return null;
         });
       }
 
-      function removeContentItemFromSupabase(monthNumber, column, itemId) {
+      function removeContentItemFromSupabase(grade, monthNumber, column, itemId) {
         if (!supabase) return Promise.resolve();
-        return getContentRow(monthNumber).then(function(res) {
+        return getContentRow(grade, monthNumber).then(function(res) {
           if (!res.data || !res.data.id) return;
           var existing = (res.data[column] && Array.isArray(res.data[column])) ? res.data[column] : [];
           var updated = existing.filter(function(item) { return (item.id || '') !== (itemId || ''); });
           var payload = {
             teacher_id: teacherId,
             teacher_name: fullName,
+            grade: grade,
             month_number: monthNumber,
             [column]: updated,
             updated_at: new Date().toISOString()
@@ -934,7 +980,7 @@
           if (addContentTypeInput) addContentTypeInput.value = type;
           if (addContentForm) addContentForm.reset();
           if (addContentError) addContentError.style.display = 'none';
-          setUploadProgress(false);
+          setUploadProgress(0, false);
           const isQuiz = type === 'quizzes';
           if (addContentUrlWrap) addContentUrlWrap.classList.toggle('d-none', !isQuiz);
           if (addContentFileWrap) addContentFileWrap.classList.toggle('d-none', isQuiz);
@@ -982,12 +1028,10 @@
           submitBtn.disabled = true;
           hideErr();
           try {
-            await upsertContentRow(monthNum, 'quizzes', newItem);
-            const row = await loadMonthContentFromSupabase(monthNum);
-            if (row) {
-              month.content = { sessions: row.sessions || [], pdfs: row.pdfs || [], quizzes: row.quizzes || [], assessments: row.assessments || [] };
-              saveMonths();
-            }
+            var gradeNum = typeof month.grade === 'number' ? month.grade : 10;
+            await upsertContentRow(gradeNum, monthNum, 'quizzes', newItem);
+            var row = await loadMonthContentFromSupabase(gradeNum, monthNum);
+            if (row) month.content = { sessions: row.sessions || [], pdfs: row.pdfs || [], quizzes: row.quizzes || [], assessments: row.assessments || [] };
             renderEditMonthContentList(month);
             bootstrap.Modal.getInstance(modalEl).hide();
           } catch (err) {
@@ -1014,21 +1058,22 @@
 
         submitBtn.disabled = true;
         hideErr();
-        setUploadProgress(true);
+        setUploadProgress(0, true);
 
         try {
-          let publicUrl = null;
+          var publicUrl = null;
           if (supabase) {
-            var uploadRes = await supabase.storage.from(BUCKET).upload(storagePath, file, { upsert: true });
-            if (uploadRes.error) throw new Error(uploadRes.error.message || 'Upload failed.');
+            await uploadFileWithProgress(file, storagePath);
+            setUploadProgress(100, true);
             var urlData = supabase.storage.from(BUCKET).getPublicUrl(storagePath);
             publicUrl = urlData.data.publicUrl;
           }
           const displayName = title || (type.slice(0, -1) + '(' + count + ')month(' + monthNum + ')');
           const newItem = { id, name: displayName, url: publicUrl || '#', created_at: new Date().toISOString() };
           if (supabase) {
-            await upsertContentRow(monthNum, type, newItem);
-            const row = await loadMonthContentFromSupabase(monthNum);
+            var gradeNum = typeof month.grade === 'number' ? month.grade : 10;
+            await upsertContentRow(gradeNum, monthNum, type, newItem);
+            var row = await loadMonthContentFromSupabase(gradeNum, monthNum);
             if (row) month.content = { sessions: row.sessions || [], pdfs: row.pdfs || [], quizzes: row.quizzes || [], assessments: row.assessments || [] };
           } else {
             ensureMonthContent(month);
@@ -1037,10 +1082,10 @@
           }
           saveMonths();
           renderEditMonthContentList(month);
-          setUploadProgress(false);
+          setUploadProgress(0, false);
           bootstrap.Modal.getInstance(modalEl).hide();
         } catch (err) {
-          setUploadProgress(false);
+          setUploadProgress(0, false);
           showErr(err.message || 'Upload or save failed.');
         }
         submitBtn.disabled = false;
